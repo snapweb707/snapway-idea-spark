@@ -57,8 +57,26 @@ const Admin = () => {
     if (user && isAdmin) {
       fetchModels();
       fetchProducts();
+      // Check if API key is set in database
+      checkDatabaseApiKey();
     }
   }, [user, isAdmin, loading, navigate]);
+
+  const checkDatabaseApiKey = async () => {
+    try {
+      const { data } = await supabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', 'openrouter_api_key')
+        .single();
+      
+      if (data?.setting_value) {
+        setIsKeySet(true);
+      }
+    } catch (error) {
+      console.error('Error checking API key:', error);
+    }
+  };
 
   const fetchModels = async () => {
     try {
@@ -89,7 +107,7 @@ const Admin = () => {
     }
   };
 
-  const saveOpenRouterKey = () => {
+  const saveOpenRouterKey = async () => {
     if (!openRouterKey.trim()) {
       toast({
         title: "خطأ",
@@ -99,22 +117,55 @@ const Admin = () => {
       return;
     }
 
-    localStorage.setItem("openrouter_api_key", openRouterKey);
-    setIsKeySet(true);
-    toast({
-      title: "تم الحفظ",
-      description: "تم حفظ OpenRouter API Key بنجاح",
-    });
+    try {
+      const { error } = await supabase
+        .from('admin_settings')
+        .upsert({
+          setting_key: 'openrouter_api_key',
+          setting_value: openRouterKey,
+          is_encrypted: true
+        });
+
+      if (error) throw error;
+
+      localStorage.setItem("openrouter_api_key", openRouterKey);
+      setIsKeySet(true);
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ OpenRouter API Key بنجاح في النظام",
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const removeOpenRouterKey = () => {
-    localStorage.removeItem("openrouter_api_key");
-    setOpenRouterKey("");
-    setIsKeySet(false);
-    toast({
-      title: "تم الحذف",
-      description: "تم حذف OpenRouter API Key",
-    });
+  const removeOpenRouterKey = async () => {
+    try {
+      const { error } = await supabase
+        .from('admin_settings')
+        .update({ setting_value: '' })
+        .eq('setting_key', 'openrouter_api_key');
+
+      if (error) throw error;
+
+      localStorage.removeItem("openrouter_api_key");
+      setOpenRouterKey("");
+      setIsKeySet(false);
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف OpenRouter API Key من النظام",
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const testConnection = async () => {

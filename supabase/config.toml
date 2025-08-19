@@ -1,1 +1,4 @@
 project_id = "vxlsrzucqkwggexknkyg"
+
+[functions.analyze-idea]
+verify_jwt = false

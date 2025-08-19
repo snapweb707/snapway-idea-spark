@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, Brain, Zap, LogIn } from "lucide-react";
 
 interface AnalysisResult {
@@ -53,24 +54,17 @@ const BusinessAnalysis = () => {
     setIsAnalyzing(true);
 
     try {
-      // استخدام edge function بدلاً من API مباشرة
-      const response = await fetch("/api/analyze-idea", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // استخدام edge function
+      const { data, error } = await supabase.functions.invoke('analyze-idea', {
+        body: {
           idea,
           analysisType,
           userId: user.id
-        }),
+        }
       });
 
-      if (!response.ok) {
-        throw new Error("فشل في الحصول على التحليل");
-      }
+      if (error) throw error;
 
-      const data = await response.json();
       setAnalysis(data.analysis);
       toast({
         title: "تم التحليل بنجاح",
