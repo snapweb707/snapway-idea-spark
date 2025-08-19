@@ -52,6 +52,81 @@ export type Database = {
           },
         ]
       }
+      ai_models: {
+        Row: {
+          context_length: number | null
+          created_at: string
+          description: string | null
+          id: string
+          input_cost: number | null
+          is_active: boolean | null
+          model_id: string
+          name: string
+          output_cost: number | null
+          provider: string
+        }
+        Insert: {
+          context_length?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          input_cost?: number | null
+          is_active?: boolean | null
+          model_id: string
+          name: string
+          output_cost?: number | null
+          provider?: string
+        }
+        Update: {
+          context_length?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          input_cost?: number | null
+          is_active?: boolean | null
+          model_id?: string
+          name?: string
+          output_cost?: number | null
+          provider?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price?: number | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
