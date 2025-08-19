@@ -21,12 +21,16 @@ const Admin = () => {
   const [models, setModels] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
+  const [openRouterModels, setOpenRouterModels] = useState<any[]>([]);
+  const [loadingOpenRouterModels, setLoadingOpenRouterModels] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
     type: "website",
     price: "",
-    features: ""
+    features: "",
+    url: "",
+    is_free: false
   });
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const { toast } = useToast();
@@ -59,6 +63,10 @@ const Admin = () => {
       fetchProducts();
       // Check if API key is set in database
       checkDatabaseApiKey();
+      // Fetch OpenRouter models if API key is available
+      if (isKeySet && openRouterKey) {
+        fetchOpenRouterModels();
+      }
     }
   }, [user, isAdmin, loading, navigate]);
 
@@ -71,10 +79,53 @@ const Admin = () => {
         .single();
       
       if (data?.setting_value) {
+        setOpenRouterKey(data.setting_value);
         setIsKeySet(true);
+        fetchOpenRouterModels(data.setting_value);
       }
     } catch (error) {
       console.error('Error checking API key:', error);
+    }
+  };
+
+  const fetchOpenRouterModels = async (apiKey?: string) => {
+    setLoadingOpenRouterModels(true);
+    const keyToUse = apiKey || openRouterKey;
+    
+    if (!keyToUse) {
+      setLoadingOpenRouterModels(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: {
+          "Authorization": `Bearer ${keyToUse}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Sort models by pricing - free models first
+        const sortedModels = data.data.sort((a: any, b: any) => {
+          const aIsFree = a.pricing?.prompt === "0" || a.pricing?.prompt === 0;
+          const bIsFree = b.pricing?.prompt === "0" || b.pricing?.prompt === 0;
+          
+          if (aIsFree && !bIsFree) return -1;
+          if (!aIsFree && bIsFree) return 1;
+          return a.name.localeCompare(b.name);
+        });
+        
+        setOpenRouterModels(sortedModels);
+      } else {
+        console.error("Failed to fetch OpenRouter models");
+        setOpenRouterModels([]);
+      }
+    } catch (error) {
+      console.error("Error fetching OpenRouter models:", error);
+      setOpenRouterModels([]);
+    } finally {
+      setLoadingOpenRouterModels(false);
     }
   };
 
@@ -118,18 +169,42 @@ const Admin = () => {
     }
 
     try {
-      const { error } = await supabase
+      // First check if key already exists
+      const { data: existingKey } = await supabase
         .from('admin_settings')
-        .upsert({
-          setting_key: 'openrouter_api_key',
-          setting_value: openRouterKey,
-          is_encrypted: true
-        });
+        .select('id')
+        .eq('setting_key', 'openrouter_api_key')
+        .single();
 
-      if (error) throw error;
+      if (existingKey) {
+        // Update existing key
+        const { error } = await supabase
+          .from('admin_settings')
+          .update({ 
+            setting_value: openRouterKey,
+            is_encrypted: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', 'openrouter_api_key');
+
+        if (error) throw error;
+      } else {
+        // Insert new key
+        const { error } = await supabase
+          .from('admin_settings')
+          .insert({
+            setting_key: 'openrouter_api_key',
+            setting_value: openRouterKey,
+            is_encrypted: true
+          });
+
+        if (error) throw error;
+      }
 
       localStorage.setItem("openrouter_api_key", openRouterKey);
       setIsKeySet(true);
+      fetchOpenRouterModels(); // Fetch models after saving key
+      
       toast({
         title: "تم الحفظ",
         description: "تم حفظ OpenRouter API Key بنجاح في النظام",
@@ -253,7 +328,9 @@ const Admin = () => {
         description: "",
         type: "website",
         price: "",
-        features: ""
+        features: "",
+        url: "",
+        is_free: false
       });
       setEditingProduct(null);
       fetchProducts();
@@ -296,7 +373,9 @@ const Admin = () => {
       description: product.description,
       type: product.type,
       price: product.price?.toString() || "",
-      features: product.features ? JSON.stringify(product.features, null, 2) : ""
+      features: product.features ? JSON.stringify(product.features, null, 2) : "",
+      url: product.url || "",
+      is_free: product.is_free || false
     });
     setEditingProduct(product);
   };
@@ -495,22 +574,44 @@ const Admin = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
+                      <label className="text-sm font-medium">الرابط</label>
+                      <Input
+                        type="url"
+                        placeholder="https://example.com"
+                        value={newProduct.url}
+                        onChange={(e) => setNewProduct({...newProduct, url: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <label className="text-sm font-medium">السعر</label>
                       <Input
                         type="number"
                         placeholder="0.00"
                         value={newProduct.price}
                         onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                        disabled={newProduct.is_free}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">المميزات (JSON)</label>
-                      <Textarea
-                        placeholder='{"feature1": "value1", "feature2": "value2"}'
-                        value={newProduct.features}
-                        onChange={(e) => setNewProduct({...newProduct, features: e.target.value})}
-                      />
-                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="is_free"
+                      checked={newProduct.is_free}
+                      onChange={(e) => setNewProduct({...newProduct, is_free: e.target.checked, price: e.target.checked ? "" : newProduct.price})}
+                      className="w-4 h-4"
+                    />
+                    <label htmlFor="is_free" className="text-sm font-medium">منتج مجاني</label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">المميزات (JSON)</label>
+                    <Textarea
+                      placeholder='{"feature1": "value1", "feature2": "value2"}'
+                      value={newProduct.features}
+                      onChange={(e) => setNewProduct({...newProduct, features: e.target.value})}
+                    />
                   </div>
                   
                   <div className="flex gap-2">
@@ -520,13 +621,15 @@ const Admin = () => {
                     {editingProduct && (
                       <Button variant="outline" onClick={() => {
                         setEditingProduct(null);
-                        setNewProduct({
-                          name: "",
-                          description: "",
-                          type: "website",
-                          price: "",
-                          features: ""
-                        });
+                      setNewProduct({
+                        name: "",
+                        description: "",
+                        type: "website",
+                        price: "",
+                        features: "",
+                        url: "",
+                        is_free: false
+                      });
                       }}>
                         إلغاء
                       </Button>
@@ -550,7 +653,14 @@ const Admin = () => {
                             <p className="text-sm text-muted-foreground">{product.description}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge variant="secondary">{product.type}</Badge>
-                              {product.price && <Badge variant="outline">${product.price}</Badge>}
+                              {product.is_free ? (
+                                <Badge variant="outline" className="text-green-600">مجاني</Badge>
+                              ) : product.price ? (
+                                <Badge variant="outline">${product.price}</Badge>
+                              ) : (
+                                <Badge variant="outline">السعر عند الطلب</Badge>
+                              )}
+                              {product.url && <Badge variant="outline">يحتوي على رابط</Badge>}
                               <Badge variant={product.is_active ? "default" : "destructive"}>
                                 {product.is_active ? "نشط" : "غير نشط"}
                               </Badge>
@@ -585,7 +695,7 @@ const Admin = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />
-                    نماذج الذكاء الاصطناعي المتاحة
+                    نماذج الذكاء الاصطناعي المحلية
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -621,6 +731,104 @@ const Admin = () => {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* OpenRouter Models */}
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-primary" />
+                    نماذج OpenRouter المتاحة
+                    {loadingOpenRouterModels && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!isKeySet ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>يرجى إضافة OpenRouter API Key أولاً لعرض النماذج المتاحة</p>
+                    </div>
+                  ) : loadingOpenRouterModels ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">جاري تحميل النماذج...</p>
+                    </div>
+                  ) : openRouterModels.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>لم يتم العثور على نماذج</p>
+                      <Button 
+                        onClick={() => fetchOpenRouterModels()} 
+                        variant="outline" 
+                        className="mt-2"
+                      >
+                        إعادة المحاولة
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          تم العثور على {openRouterModels.length} نموذج (مرتبة: المجانية أولاً)
+                        </p>
+                        <Button 
+                          onClick={() => fetchOpenRouterModels()} 
+                          variant="outline" 
+                          size="sm"
+                        >
+                          تحديث
+                        </Button>
+                      </div>
+                      
+                      <div className="grid gap-4 max-h-96 overflow-y-auto">
+                        {openRouterModels.map((model, index) => {
+                          const isFree = model.pricing?.prompt === "0" || model.pricing?.prompt === 0;
+                          const promptPrice = parseFloat(model.pricing?.prompt || "0");
+                          const completionPrice = parseFloat(model.pricing?.completion || "0");
+                          
+                          return (
+                            <div key={model.id || index} className="p-4 border rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-sm">{model.name}</h4>
+                                <div className="flex gap-2">
+                                  {isFree ? (
+                                    <Badge variant="outline" className="text-green-600 border-green-600">
+                                      مجاني
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                      مدفوع
+                                    </Badge>
+                                  )}
+                                  <Badge variant="secondary" className="text-xs">
+                                    {model.context_length?.toLocaleString() || 'N/A'} tokens
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              {model.description && (
+                                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                  {model.description}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span>Input: ${promptPrice.toFixed(6)}/1M tokens</span>
+                                <span>Output: ${completionPrice.toFixed(6)}/1M tokens</span>
+                                {model.top_provider && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {model.top_provider.name}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

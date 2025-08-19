@@ -127,7 +127,11 @@ const Products = () => {
                     )}
 
                     <div className="flex items-center justify-between pt-2">
-                      {product.price ? (
+                      {product.is_free ? (
+                        <div className="text-lg font-bold text-green-600">
+                          مجاني
+                        </div>
+                      ) : product.price ? (
                         <div className="text-lg font-bold text-primary">
                           ${product.price}
                         </div>
@@ -143,10 +147,21 @@ const Products = () => {
                       </div>
                     </div>
 
-                    <Button className="w-full" variant="default">
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      طلب المنتج
-                    </Button>
+                    {product.url ? (
+                      <Button 
+                        className="w-full" 
+                        variant="default"
+                        onClick={() => window.open(product.url, '_blank')}
+                      >
+                        <Globe className="w-4 h-4 mr-2" />
+                        زيارة المنتج
+                      </Button>
+                    ) : (
+                      <Button className="w-full" variant="default">
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        طلب المنتج
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}

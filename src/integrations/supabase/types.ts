@@ -98,10 +98,12 @@ export type Database = {
           features: Json | null
           id: string
           is_active: boolean | null
+          is_free: boolean | null
           name: string
           price: number | null
           type: string
           updated_at: string
+          url: string | null
         }
         Insert: {
           created_at?: string
@@ -109,10 +111,12 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean | null
+          is_free?: boolean | null
           name: string
           price?: number | null
           type: string
           updated_at?: string
+          url?: string | null
         }
         Update: {
           created_at?: string
@@ -120,10 +124,12 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean | null
+          is_free?: boolean | null
           name?: string
           price?: number | null
           type?: string
           updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }
