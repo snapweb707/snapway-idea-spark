@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, Brain, Zap, LogIn } from "lucide-react";
 
 interface AnalysisResult {
   overall_score: number;
@@ -24,9 +27,20 @@ const BusinessAnalysis = () => {
   const [idea, setIdea] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [analysisType, setAnalysisType] = useState<string>("basic");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const analyzeIdea = async () => {
+    if (!user) {
+      toast({
+        title: "تسجيل الدخول مطلوب",
+        description: "يجب تسجيل الدخول أولاً لاستخدام التحليل",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!idea.trim()) {
       toast({
         title: "خطأ",
@@ -36,54 +50,19 @@ const BusinessAnalysis = () => {
       return;
     }
 
-    const apiKey = localStorage.getItem("openai_api_key");
-    if (!apiKey) {
-      toast({
-        title: "مطلوب API Key",
-        description: "يرجى إعداد OpenAI API Key من صفحة الإدارة",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      // استخدام edge function بدلاً من API مباشرة
+      const response = await fetch("/api/analyze-idea", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4",
-          messages: [
-            {
-              role: "system",
-              content: `You are a business analyst expert. Analyze the business idea and return a structured JSON response with the following format:
-              {
-                "overall_score": number (0-100),
-                "market_potential": number (0-100), 
-                "feasibility": number (0-100),
-                "risk_level": number (0-100),
-                "strengths": ["strength1", "strength2", ...],
-                "weaknesses": ["weakness1", "weakness2", ...],
-                "recommendations": ["recommendation1", "recommendation2", ...],
-                "market_size": "description of market size",
-                "target_audience": "description of target audience",
-                "revenue_model": "suggested revenue model",
-                "competitive_advantage": "potential competitive advantages"
-              }
-              
-              Respond in Arabic for all text fields. Be comprehensive and provide actionable insights.`
-            },
-            {
-              role: "user",
-              content: `حلل فكرة المشروع التالية: ${idea}`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000,
+          idea,
+          analysisType,
+          userId: user.id
         }),
       });
 
@@ -92,18 +71,11 @@ const BusinessAnalysis = () => {
       }
 
       const data = await response.json();
-      const analysisText = data.choices[0].message.content;
-      
-      try {
-        const parsedAnalysis = JSON.parse(analysisText);
-        setAnalysis(parsedAnalysis);
-        toast({
-          title: "تم التحليل بنجاح",
-          description: "تم تحليل فكرة المشروع بنجاح",
-        });
-      } catch (parseError) {
-        throw new Error("خطأ في تحليل النتائج");
-      }
+      setAnalysis(data.analysis);
+      toast({
+        title: "تم التحليل بنجاح",
+        description: `تم إجراء ${getAnalysisTypeName(analysisType)} بنجاح`,
+      });
     } catch (error) {
       toast({
         title: "خطأ في التحليل",
@@ -127,6 +99,14 @@ const BusinessAnalysis = () => {
     return "bg-red-100";
   };
 
+  const getAnalysisTypeName = (type: string) => {
+    switch (type) {
+      case 'interactive': return 'التحليل التفاعلي';
+      case 'deep': return 'التحليل العميق';
+      default: return 'التحليل الأساسي';
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <Card className="shadow-elegant border-border/50">
@@ -139,6 +119,37 @@ const BusinessAnalysis = () => {
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">
+              نوع التحليل
+            </label>
+            <Select value={analysisType} onValueChange={setAnalysisType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="basic">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    تحليل أساسي - سريع وشامل
+                  </div>
+                </SelectItem>
+                <SelectItem value="interactive">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4" />
+                    تحليل تفاعلي - مع أسئلة إضافية
+                  </div>
+                </SelectItem>
+                <SelectItem value="deep">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    تحليل عميق - تفصيلي ومتقدم
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium mb-2 block">
               اشرح فكرة مشروعك بالتفصيل
             </label>
             <Textarea
@@ -149,25 +160,35 @@ const BusinessAnalysis = () => {
               dir="rtl"
             />
           </div>
-          <Button
-            onClick={analyzeIdea}
-            disabled={isAnalyzing || !idea.trim()}
-            variant="hero"
-            size="lg"
-            className="w-full"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                جاري التحليل...
-              </>
-            ) : (
-              <>
-                <TrendingUp className="w-4 h-4" />
-                تحليل الفكرة
-              </>
-            )}
-          </Button>
+          
+          {!user ? (
+            <Link to="/auth">
+              <Button variant="hero" size="lg" className="w-full">
+                <LogIn className="w-4 h-4" />
+                سجل الدخول لبدء التحليل
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              onClick={analyzeIdea}
+              disabled={isAnalyzing || !idea.trim()}
+              variant="hero"
+              size="lg"
+              className="w-full"
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  جاري {getAnalysisTypeName(analysisType)}...
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="w-4 h-4" />
+                  بدء {getAnalysisTypeName(analysisType)}
+                </>
+              )}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
