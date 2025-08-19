@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { idea, analysisType, selectedModel, userId } = await req.json();
+    const { idea, analysisType, userId } = await req.json();
 
     // Get OpenRouter API key from settings
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -39,9 +39,17 @@ serve(async (req) => {
 
     const openRouterKey = settingData.setting_value;
 
-    // Configure analysis based on type and use selected model
+    // Get selected model from admin settings
+    const { data: modelData } = await supabase
+      .from('admin_settings')
+      .select('setting_value')
+      .eq('setting_key', 'selected_ai_model')
+      .single();
+
+    const modelToUse = modelData?.setting_value || "openai/gpt-4o-mini";
+
+    // Configure analysis based on type
     let systemPrompt = "";
-    const modelToUse = selectedModel || "openai/gpt-4o-mini";
 
     switch (analysisType) {
       case 'interactive':

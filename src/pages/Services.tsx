@@ -1,60 +1,45 @@
+import { useState, useEffect } from "react";
 import { Check, ArrowRight, Zap, Target, BarChart3, TrendingUp, Shield, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Services = () => {
-  const services = [
-    {
-      icon: Zap,
-      title: "التحليل السريع",
-      description: "تحليل أولي شامل لفكرتك التجارية في دقائق معدودة",
-      features: [
-        "تقييم أولي للفكرة",
-        "تحليل السوق الأساسي",
-        "تحديد الجمهور المستهدف",
-        "المخاطر الأساسية"
-      ],
-      price: "مجاني",
-      duration: "2-5 دقائق",
-      popular: false
-    },
-    {
-      icon: Target,
-      title: "التحليل التفاعلي",
-      description: "تحليل متقدم مع إمكانية التفاعل والحصول على تفاصيل إضافية",
-      features: [
-        "تحليل متعمق للسوق",
-        "دراسة المنافسين",
-        "استراتيجية التسويق",
-        "التوقعات المالية",
-        "خطة العمل الأولية",
-        "تحليل SWOT"
-      ],
-      price: "19 ر.س",
-      duration: "5-10 دقائق",
-      popular: true
-    },
-    {
-      icon: BarChart3,
-      title: "التحليل العميق",
-      description: "تحليل شامل ومفصل مع تقرير مكتوب وتوصيات محددة",
-      features: [
-        "كل ما في التحليل التفاعلي",
-        "تقرير PDF مفصل",
-        "دراسة جدوى مالية متقدمة",
-        "خطة تسويقية شاملة",
-        "تحليل المخاطر المتقدم",
-        "توصيات استراتيجية",
-        "متابعة لمدة شهر"
-      ],
-      price: "49 ر.س",
-      duration: "10-15 دقيقة",
-      popular: false
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('price', { ascending: true });
+      
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'Target': return Target;
+      case 'TrendingUp': return TrendingUp;
+      case 'BarChart3':
+      default: return BarChart3;
+    }
+  };
 
   const additionalServices = [
     {
@@ -77,6 +62,18 @@ const Services = () => {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle">
+        <Header />
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">جاري تحميل الخدمات...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <Header />
@@ -93,61 +90,71 @@ const Services = () => {
           </p>
         </div>
 
-        {/* Main Services */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-16">
-          {services.map((service, index) => (
-            <Card 
-              key={index} 
-              className={`relative bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-elegant transition-all duration-300 ${
-                service.popular ? 'ring-2 ring-primary/50 scale-105' : ''
-              }`}
-            >
-              {service.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-gradient-primary text-primary-foreground px-4 py-1">
-                    الأكثر شعبية
-                  </Badge>
-                </div>
-              )}
+        {/* Main Services from Database */}
+        {services.length > 0 && (
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {services.map((service, index) => {
+              const IconComponent = getIconComponent(service.icon);
+              const isPopular = index === 1; // Make middle service popular
               
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <service.icon className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <CardTitle className="text-2xl mb-2">{service.title}</CardTitle>
-                <p className="text-muted-foreground text-sm">{service.description}</p>
-              </CardHeader>
-              
-              <CardContent className="pt-4">
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-primary mb-1">{service.price}</div>
-                  <div className="text-sm text-muted-foreground">مدة التحليل: {service.duration}</div>
-                </div>
-                
-                <ul className="space-y-3 mb-8">
-                  {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3 h-3 text-primary-foreground" />
+              return (
+                <Card 
+                  key={service.id} 
+                  className={`relative bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-elegant transition-all duration-300 ${
+                    isPopular ? 'ring-2 ring-primary/50 scale-105' : ''
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-gradient-primary text-primary-foreground px-4 py-1">
+                        الأكثر شعبية
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <CardHeader className="text-center pb-4">
+                    <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <IconComponent className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                    <CardTitle className="text-2xl mb-2">{service.title}</CardTitle>
+                    <p className="text-muted-foreground text-sm">{service.description}</p>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-4">
+                    <div className="text-center mb-6">
+                      <div className="text-3xl font-bold text-primary mb-1">
+                        {service.is_free ? "مجاني" : `${service.price} ر.س`}
                       </div>
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <Link to="/">
-                  <Button 
-                    className="w-full group" 
-                    variant={service.popular ? "default" : "outline"}
-                  >
-                    ابدأ التحليل الآن
-                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    </div>
+                    
+                    {service.features && (
+                      <ul className="space-y-3 mb-8">
+                        {service.features.map((feature: string, featureIndex: number) => (
+                          <li key={featureIndex} className="flex items-center gap-3">
+                            <div className="w-5 h-5 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                              <Check className="w-3 h-3 text-primary-foreground" />
+                            </div>
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    
+                    <Link to="/">
+                      <Button 
+                        className="w-full group" 
+                        variant={isPopular ? "default" : "outline"}
+                      >
+                        ابدأ التحليل الآن
+                        <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Additional Services */}
         <div className="mb-16">

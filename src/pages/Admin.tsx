@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut } from "lucide-react";
+import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 
 const Admin = () => {
@@ -20,6 +20,7 @@ const Admin = () => {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [models, setModels] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
   const [openRouterModels, setOpenRouterModels] = useState<any[]>([]);
   const [loadingOpenRouterModels, setLoadingOpenRouterModels] = useState(false);
@@ -32,7 +33,16 @@ const Admin = () => {
     url: "",
     is_free: false
   });
+  const [newService, setNewService] = useState({
+    title: "",
+    description: "",
+    price: "",
+    features: "",
+    icon: "BarChart3",
+    is_free: false
+  });
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingService, setEditingService] = useState<any>(null);
   const { toast } = useToast();
   const { user, isAdmin, loading, signOut } = useAuth();
 
@@ -61,14 +71,81 @@ const Admin = () => {
     if (user && isAdmin) {
       fetchModels();
       fetchProducts();
-      // Check if API key is set in database
+      fetchServices();
+      fetchSelectedModel();
       checkDatabaseApiKey();
-      // Fetch OpenRouter models if API key is available
       if (isKeySet && openRouterKey) {
         fetchOpenRouterModels();
       }
     }
   }, [user, isAdmin, loading, navigate]);
+
+  const fetchSelectedModel = async () => {
+    try {
+      const { data } = await supabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', 'selected_ai_model')
+        .single();
+      
+      if (data?.setting_value) {
+        setSelectedModel(data.setting_value);
+      }
+    } catch (error) {
+      console.error('Error fetching selected model:', error);
+    }
+  };
+
+  const saveSelectedModel = async () => {
+    if (!selectedModel) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار نموذج",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: existing } = await supabase
+        .from('admin_settings')
+        .select('id')
+        .eq('setting_key', 'selected_ai_model')
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('admin_settings')
+          .update({ 
+            setting_value: selectedModel,
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', 'selected_ai_model');
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('admin_settings')
+          .insert({
+            setting_key: 'selected_ai_model',
+            setting_value: selectedModel
+          });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ النموذج المختار بنجاح",
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const checkDatabaseApiKey = async () => {
     try {
@@ -106,7 +183,6 @@ const Admin = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Sort models by pricing - free models first
         const sortedModels = data.data.sort((a: any, b: any) => {
           const aIsFree = a.pricing?.prompt === "0" || a.pricing?.prompt === 0;
           const bIsFree = b.pricing?.prompt === "0" || b.pricing?.prompt === 0;
@@ -158,6 +234,20 @@ const Admin = () => {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
   const saveOpenRouterKey = async () => {
     if (!openRouterKey.trim()) {
       toast({
@@ -169,7 +259,6 @@ const Admin = () => {
     }
 
     try {
-      // First check if key already exists
       const { data: existingKey } = await supabase
         .from('admin_settings')
         .select('id')
@@ -177,7 +266,6 @@ const Admin = () => {
         .single();
 
       if (existingKey) {
-        // Update existing key
         const { error } = await supabase
           .from('admin_settings')
           .update({ 
@@ -189,7 +277,6 @@ const Admin = () => {
 
         if (error) throw error;
       } else {
-        // Insert new key
         const { error } = await supabase
           .from('admin_settings')
           .insert({
@@ -203,7 +290,7 @@ const Admin = () => {
 
       localStorage.setItem("openrouter_api_key", openRouterKey);
       setIsKeySet(true);
-      fetchOpenRouterModels(); // Fetch models after saving key
+      fetchOpenRouterModels();
       
       toast({
         title: "تم الحفظ",
@@ -279,6 +366,103 @@ const Admin = () => {
     } finally {
       setIsTestingConnection(false);
     }
+  };
+
+  const handleSaveService = async () => {
+    if (!newService.title || !newService.description) {
+      toast({
+        title: "خطأ",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const serviceData = {
+        ...newService,
+        price: newService.price ? parseFloat(newService.price) : null,
+        features: newService.features ? JSON.parse(newService.features) : null,
+      };
+
+      if (editingService) {
+        const { error } = await supabase
+          .from('services')
+          .update(serviceData)
+          .eq('id', editingService.id);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "تم التحديث",
+          description: "تم تحديث الخدمة بنجاح",
+        });
+      } else {
+        const { error } = await supabase
+          .from('services')
+          .insert([serviceData]);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "تم الإضافة",
+          description: "تم إضافة الخدمة بنجاح",
+        });
+      }
+
+      setNewService({
+        title: "",
+        description: "",
+        price: "",
+        features: "",
+        icon: "BarChart3",
+        is_free: false
+      });
+      setEditingService(null);
+      fetchServices();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteService = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الخدمة بنجاح",
+      });
+      
+      fetchServices();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditService = (service: any) => {
+    setNewService({
+      title: service.title,
+      description: service.description,
+      price: service.price?.toString() || "",
+      features: service.features ? JSON.stringify(service.features, null, 2) : "",
+      icon: service.icon || "BarChart3",
+      is_free: service.is_free || false
+    });
+    setEditingService(service);
   };
 
   const handleSaveProduct = async () => {
@@ -389,6 +573,15 @@ const Admin = () => {
     }
   };
 
+  const getServiceIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'BarChart3': return <BarChart3 className="w-4 h-4" />;
+      case 'Target': return <Target className="w-4 h-4" />;
+      case 'TrendingUp': return <TrendingUp className="w-4 h-4" />;
+      default: return <Settings className="w-4 h-4" />;
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -420,9 +613,9 @@ const Admin = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
                 <Settings className="w-8 h-8 text-primary-foreground" />
               </div>
-            <h1 className="text-3xl font-bold mb-2">نظام تسجيل الدخول</h1>
+            <h1 className="text-3xl font-bold mb-2">لوحة التحكم</h1>
             <p className="text-muted-foreground">
-              إدارة شاملة للموقع والمنتجات والذكاء الاصطناعي
+              إدارة شاملة للموقع والمنتجات والخدمات والذكاء الاصطناعي
               </p>
             </div>
             <Button onClick={handleSignOut} variant="outline" className="flex items-center gap-2">
@@ -432,10 +625,14 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="ai-settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 إعدادات الذكاء الاصطناعي
+              </TabsTrigger>
+              <TabsTrigger value="services" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                إدارة الخدمات
               </TabsTrigger>
               <TabsTrigger value="products" className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
@@ -443,7 +640,7 @@ const Admin = () => {
               </TabsTrigger>
               <TabsTrigger value="models" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                نماذج الذكاء الاصطناعي
+                اختيار النموذج
               </TabsTrigger>
             </TabsList>
 
@@ -525,6 +722,152 @@ const Admin = () => {
                       <br />
                       4. انسخ المفتاح والصقه هنا
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="services" className="space-y-6">
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-primary" />
+                    {editingService ? "تعديل الخدمة" : "إضافة خدمة جديدة"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">عنوان الخدمة</label>
+                      <Input
+                        placeholder="عنوان الخدمة"
+                        value={newService.title}
+                        onChange={(e) => setNewService({...newService, title: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">أيقونة الخدمة</label>
+                      <Select value={newService.icon} onValueChange={(value) => setNewService({...newService, icon: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BarChart3">BarChart3</SelectItem>
+                          <SelectItem value="Target">Target</SelectItem>
+                          <SelectItem value="TrendingUp">TrendingUp</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">وصف الخدمة</label>
+                    <Textarea
+                      placeholder="وصف الخدمة"
+                      value={newService.description}
+                      onChange={(e) => setNewService({...newService, description: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">السعر</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={newService.price}
+                      onChange={(e) => setNewService({...newService, price: e.target.value})}
+                      disabled={newService.is_free}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="service_is_free"
+                      checked={newService.is_free}
+                      onChange={(e) => setNewService({...newService, is_free: e.target.checked, price: e.target.checked ? "" : newService.price})}
+                      className="w-4 h-4"
+                    />
+                    <label htmlFor="service_is_free" className="text-sm font-medium">خدمة مجانية</label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">المميزات (JSON Array)</label>
+                    <Textarea
+                      placeholder='["ميزة 1", "ميزة 2", "ميزة 3"]'
+                      value={newService.features}
+                      onChange={(e) => setNewService({...newService, features: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveService}>
+                      {editingService ? "تحديث الخدمة" : "إضافة الخدمة"}
+                    </Button>
+                    {editingService && (
+                      <Button variant="outline" onClick={() => {
+                        setEditingService(null);
+                        setNewService({
+                          title: "",
+                          description: "",
+                          price: "",
+                          features: "",
+                          icon: "BarChart3",
+                          is_free: false
+                        });
+                      }}>
+                        إلغاء
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle>الخدمات المتاحة</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {services.map((service) => (
+                      <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getServiceIcon(service.icon)}
+                          <div>
+                            <h4 className="font-medium">{service.title}</h4>
+                            <p className="text-sm text-muted-foreground">{service.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {service.is_free ? (
+                                <Badge variant="outline" className="text-green-600">مجانية</Badge>
+                              ) : service.price ? (
+                                <Badge variant="outline">${service.price}</Badge>
+                              ) : (
+                                <Badge variant="outline">السعر عند الطلب</Badge>
+                              )}
+                              <Badge variant={service.is_active ? "default" : "destructive"}>
+                                {service.is_active ? "نشطة" : "غير نشطة"}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditService(service)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteService(service.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -621,15 +964,15 @@ const Admin = () => {
                     {editingProduct && (
                       <Button variant="outline" onClick={() => {
                         setEditingProduct(null);
-                      setNewProduct({
-                        name: "",
-                        description: "",
-                        type: "website",
-                        price: "",
-                        features: "",
-                        url: "",
-                        is_free: false
-                      });
+                        setNewProduct({
+                          name: "",
+                          description: "",
+                          type: "website",
+                          price: "",
+                          features: "",
+                          url: "",
+                          is_free: false
+                        });
                       }}>
                         إلغاء
                       </Button>
@@ -695,46 +1038,47 @@ const Admin = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />
-                    نماذج الذكاء الاصطناعي المحلية
+                    اختيار النموذج للتحليل
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <label className="text-sm font-medium">اختر النموذج الافتراضي</label>
-                    <Select value={selectedModel} onValueChange={setSelectedModel}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر نموذج الذكاء الاصطناعي" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {models.map((model) => (
-                          <SelectItem key={model.id} value={model.model_id}>
-                            {model.name} - {model.provider}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">اختر النموذج الافتراضي للتحليل</label>
+                    <div className="flex gap-2">
+                      <Select value={selectedModel} onValueChange={setSelectedModel}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر نموذج من OpenRouter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {openRouterModels.map((model, index) => {
+                            const isFree = model.pricing?.prompt === "0" || model.pricing?.prompt === 0;
+                            return (
+                              <SelectItem key={model.id || index} value={model.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{model.name}</span>
+                                  {isFree && <Badge variant="outline" className="text-xs text-green-600">مجاني</Badge>}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={saveSelectedModel}>
+                        حفظ
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="grid gap-4">
-                    {models.map((model) => (
-                      <div key={model.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{model.name}</h4>
-                          <Badge variant="secondary">{model.provider}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{model.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>Context: {model.context_length?.toLocaleString()} tokens</span>
-                          <span>Input: ${model.input_cost}/1K tokens</span>
-                          <span>Output: ${model.output_cost}/1K tokens</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {selectedModel && (
+                    <div className="p-3 bg-gradient-glow rounded-lg">
+                      <p className="text-sm text-green-700">
+                        النموذج المختار: {openRouterModels.find(m => m.id === selectedModel)?.name || selectedModel}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* OpenRouter Models */}
               <Card className="shadow-elegant border-border/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
