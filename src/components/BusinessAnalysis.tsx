@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, Brain, Zap, LogIn } from "lucide-react";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, Brain, Zap, LogIn, Cpu } from "lucide-react";
 
 interface AnalysisResult {
   overall_score: number;
@@ -29,8 +29,30 @@ const BusinessAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [analysisType, setAnalysisType] = useState<string>("basic");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-4o-mini");
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  useEffect(() => {
+    fetchAvailableModels();
+  }, []);
+
+  const fetchAvailableModels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ai_models')
+        .select('*')
+        .eq('is_active', true)
+        .order('input_cost', { ascending: true });
+      
+      if (data) {
+        setAvailableModels(data);
+      }
+    } catch (error) {
+      console.error('Error fetching models:', error);
+    }
+  };
 
   const analyzeIdea = async () => {
     if (!user) {
@@ -59,6 +81,7 @@ const BusinessAnalysis = () => {
         body: {
           idea,
           analysisType,
+          selectedModel,
           userId: user.id
         }
       });
@@ -111,35 +134,71 @@ const BusinessAnalysis = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              نوع التحليل
-            </label>
-            <Select value={analysisType} onValueChange={setAnalysisType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="basic">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    تحليل أساسي - سريع وشامل
-                  </div>
-                </SelectItem>
-                <SelectItem value="interactive">
-                  <div className="flex items-center gap-2">
-                    <Brain className="w-4 h-4" />
-                    تحليل تفاعلي - مع أسئلة إضافية
-                  </div>
-                </SelectItem>
-                <SelectItem value="deep">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    تحليل عميق - تفصيلي ومتقدم
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                نوع التحليل
+              </label>
+              <Select value={analysisType} onValueChange={setAnalysisType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      تحليل أساسي - سريع وشامل
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="interactive">
+                    <div className="flex items-center gap-2">
+                      <Brain className="w-4 h-4" />
+                      تحليل تفاعلي - مع أسئلة إضافية
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="deep">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      تحليل عميق - تفصيلي ومتقدم
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                النموذج المستخدم
+              </label>
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableModels.map((model) => (
+                    <SelectItem key={model.id} value={model.model_id}>
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <div className="flex items-center gap-2">
+                          <Cpu className="w-4 h-4" />
+                          <span className="text-sm">{model.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {model.input_cost === 0 ? (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                              مجاني
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              ${model.input_cost}/1M
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div>

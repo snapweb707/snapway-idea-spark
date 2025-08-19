@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { idea, analysisType, userId } = await req.json();
+    const { idea, analysisType, selectedModel, userId } = await req.json();
 
     // Get OpenRouter API key from settings
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -39,18 +39,16 @@ serve(async (req) => {
 
     const openRouterKey = settingData.setting_value;
 
-    // Configure analysis based on type
+    // Configure analysis based on type and use selected model
     let systemPrompt = "";
-    let modelToUse = "openai/gpt-4o-mini";
+    const modelToUse = selectedModel || "openai/gpt-4o-mini";
 
     switch (analysisType) {
       case 'interactive':
         systemPrompt = `أنت محلل أعمال تفاعلي خبير. قم بتحليل فكرة المشروع التجاري وقدم تحليلاً تفاعلياً يتضمن أسئلة إضافية وتوصيات قابلة للتطبيق. استجب بصيغة JSON منظمة.`;
-        modelToUse = "openai/gpt-4o";
         break;
       case 'deep':
         systemPrompt = `أنت محلل أعمال متقدم ومتخصص. قم بإجراء تحليل عميق ومفصل لفكرة المشروع التجاري يشمل تحليل السوق المتقدم، دراسة المنافسين، النمذجة المالية، وتحليل المخاطر التفصيلي. استجب بصيغة JSON منظمة.`;
-        modelToUse = "openai/gpt-4o";
         break;
       default:
         systemPrompt = `أنت محلل أعمال خبير. قم بتحليل فكرة المشروع التجاري وقدم تقييماً شاملاً وسريعاً. استجب بصيغة JSON منظمة.`;

@@ -297,31 +297,6 @@ const Auth = () => {
             </CardContent>
           </Card>
 
-          {/* Admin Account Creation */}
-          <Card className="shadow-elegant border-border/50 bg-gradient-primary">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <Shield className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <h3 className="font-semibold text-primary-foreground">حساب المدير</h3>
-                <p className="text-sm text-primary-foreground/80">
-                  إذا كان هذا أول مرة تستخدم النظام كمدير، قم بإنشاء حساب المدير أولاً
-                </p>
-                <Button 
-                  onClick={createAdminAccount}
-                  variant="secondary"
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? "جاري الإنشاء..." : "إنشاء حساب المدير"}
-                </Button>
-                <div className="text-xs text-primary-foreground/60">
-                  الإيميل: anasm5666@gmail.com | كلمة المرور: 12345678
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="shadow-elegant border-border/50 bg-gradient-glow">
             <CardContent className="pt-6">
