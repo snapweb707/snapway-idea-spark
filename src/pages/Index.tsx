@@ -1,10 +1,14 @@
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import BusinessAnalysis from "@/components/BusinessAnalysis";
 import { Button } from "@/components/ui/button";
-import { Brain, TrendingUp, Target, BarChart3, Users, Lightbulb } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Brain, TrendingUp, Target, BarChart3, Users, Lightbulb, LogIn, UserPlus } from "lucide-react";
 import heroImage from "@/assets/hero-analysis.jpg";
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <Header />
@@ -26,18 +30,37 @@ const Index = () => {
                 اكتشف نقاط القوة والضعف والفرص المتاحة.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button 
-                  variant="hero" 
-                  size="lg"
-                  onClick={() => document.getElementById('analysis-section')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  ابدأ التحليل الآن
-                </Button>
-                <Button variant="premium" size="lg">
-                  <Users className="w-5 h-5" />
-                  شاهد أمثلة
-                </Button>
+                {user ? (
+                  <Button 
+                    variant="hero" 
+                    size="lg"
+                    onClick={() => document.getElementById('analysis-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    <BarChart3 className="w-5 h-5" />
+                    ابدأ التحليل الآن
+                  </Button>
+                ) : (
+                  <Link to="/auth">
+                    <Button variant="hero" size="lg">
+                      <LogIn className="w-5 h-5" />
+                      تسجيل الدخول
+                    </Button>
+                  </Link>
+                )}
+                {!user && (
+                  <Link to="/auth">
+                    <Button variant="premium" size="lg">
+                      <UserPlus className="w-5 h-5" />
+                      إنشاء حساب
+                    </Button>
+                  </Link>
+                )}
+                {user && (
+                  <Button variant="premium" size="lg">
+                    <Users className="w-5 h-5" />
+                    شاهد أمثلة
+                  </Button>
+                )}
               </div>
             </div>
             
