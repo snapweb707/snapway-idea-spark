@@ -19,7 +19,10 @@ const Header = () => {
 
   const navigationItems = [
     { href: "/", label: "الرئيسية" },
+    { href: "/services", label: "الخدمات" },
     { href: "/products", label: "المنتجات" },
+    { href: "/about", label: "عن المنصة" },
+    { href: "/contact", label: "تواصل معنا" },
   ];
 
   const adminItems = [
