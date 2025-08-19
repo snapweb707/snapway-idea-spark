@@ -13,8 +13,26 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <Header />
       
+      
+      {/* Analysis Section - Moved to top */}
+      <section id="analysis-section" className="py-16 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+              <Lightbulb className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h2 className="text-3xl font-bold mb-4">حلل فكرتك الآن</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              اشرح فكرة مشروعك واحصل على تحليل مفصل في دقائق
+            </p>
+          </div>
+          
+          <BusinessAnalysis />
+        </div>
+      </section>
+
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
+      <section className="relative py-20 px-4 overflow-hidden bg-background/50">
         <div className="absolute inset-0 bg-gradient-glow opacity-30" />
         <div className="container mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -56,10 +74,12 @@ const Index = () => {
                   </Link>
                 )}
                 {user && (
-                  <Button variant="premium" size="lg">
-                    <Users className="w-5 h-5" />
-                    شاهد أمثلة
-                  </Button>
+                  <Link to="/products">
+                    <Button variant="premium" size="lg">
+                      <Users className="w-5 h-5" />
+                      شاهد المنتجات
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
@@ -117,23 +137,6 @@ const Index = () => {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Analysis Section */}
-      <section id="analysis-section" className="py-16 px-4 bg-background/50">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
-              <Lightbulb className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h2 className="text-3xl font-bold mb-4">حلل فكرتك الآن</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              اشرح فكرة مشروعك واحصل على تحليل مفصل في دقائق
-            </p>
-          </div>
-          
-          <BusinessAnalysis />
         </div>
       </section>
     </div>

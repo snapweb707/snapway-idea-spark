@@ -290,9 +290,9 @@ const Admin = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
                 <Settings className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h1 className="text-3xl font-bold mb-2">لوحة تحكم الإدارة</h1>
-              <p className="text-muted-foreground">
-                إدارة شاملة للموقع والمنتجات والذكاء الاصطناعي
+            <h1 className="text-3xl font-bold mb-2">نظام تسجيل الدخول</h1>
+            <p className="text-muted-foreground">
+              إدارة شاملة للموقع والمنتجات والذكاء الاصطناعي
               </p>
             </div>
             <Button onClick={handleSignOut} variant="outline" className="flex items-center gap-2">

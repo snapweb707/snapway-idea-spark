@@ -1,9 +1,30 @@
-import { Button } from "@/components/ui/button";
-import { Settings, Brain, Zap } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { Menu, Brain, Zap, Settings, Package, LogOut, User, LogIn, Shield } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const navigationItems = [
+    { href: "/", label: "الرئيسية" },
+    { href: "/products", label: "المنتجات" },
+  ];
+
+  const adminItems = [
+    { href: "/admin", label: "لوحة التحكم", icon: Shield },
+  ];
 
   return (
     <header className="bg-gradient-subtle backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
@@ -26,31 +47,146 @@ const Header = () => {
             </div>
           </Link>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                location.pathname === "/" ? "text-primary" : "text-foreground/70"
-              }`}
-            >
-              الرئيسية
-            </Link>
-            <Link
-              to="/admin"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                location.pathname === "/admin" ? "text-primary" : "text-foreground/70"
-              }`}
-            >
-              الإدارة
-            </Link>
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  location.pathname === item.href ? "text-primary" : "text-foreground/70"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            
+            {isAdmin && adminItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 ${
+                  location.pathname === item.href ? "text-primary" : "text-foreground/70"
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link to="/admin">
-              <Button variant="ghost" size="icon" className="hover:bg-gradient-glow">
-                <Settings className="w-4 h-4" />
-              </Button>
-            </Link>
+          {/* Desktop User Menu */}
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="hover:bg-gradient-glow">
+                    <User className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <div className="flex items-center gap-2 px-2 py-1">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm">{user.email}</span>
+                    </div>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2 w-full">
+                          <Settings className="w-4 h-4" />
+                          إعدادات النظام
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-red-600">
+                    <LogOut className="w-4 h-4" />
+                    تسجيل الخروج
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="icon" className="hover:bg-gradient-glow">
+                  <LogIn className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72">
+                <div className="flex flex-col gap-4 mt-8">
+                  {navigationItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`text-sm font-medium transition-colors hover:text-primary p-2 rounded-lg ${
+                        location.pathname === item.href 
+                          ? "text-primary bg-gradient-glow" 
+                          : "text-foreground/70"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  
+                  {isAdmin && adminItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 p-2 rounded-lg ${
+                        location.pathname === item.href 
+                          ? "text-primary bg-gradient-glow" 
+                          : "text-foreground/70"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  ))}
+
+                  <div className="border-t pt-4 mt-4">
+                    {user ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+                          <User className="w-4 h-4" />
+                          {user.email}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          onClick={handleSignOut}
+                          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          تسجيل الخروج
+                        </Button>
+                      </div>
+                    ) : (
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
+                        <Button variant="default" className="w-full">
+                          <LogIn className="w-4 h-4 mr-2" />
+                          تسجيل الدخول
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
