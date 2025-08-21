@@ -8,7 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, MessageSquare, Calendar, Lightbulb } from "lucide-react";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, MessageSquare, Calendar, Lightbulb, Download, ArrowRight } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import AnalysisProgress from "./AnalysisProgress";
 
 interface AnalysisResult {
@@ -23,16 +25,24 @@ interface AnalysisResult {
   target_audience: string;
   revenue_model: string;
   competitive_advantage: string;
+  next_steps?: {
+    phase_1: string[];
+    phase_2: string[];
+    phase_3: string[];
+    timeline: string;
+  };
   financial_analysis?: {
     startup_cost: string;
     monthly_expenses: string;
     break_even_time: string;
     roi_projection: string;
+    funding_requirements: string;
   };
   competitive_analysis?: {
     main_competitors: string[];
     market_differentiation: string;
     barrier_to_entry: string;
+    swot_analysis: string;
   };
   interactive_questions?: string[];
   action_plan?: {
@@ -237,6 +247,147 @@ const BusinessAnalysis = () => {
       case 'interactive': return 'التحليل التفاعلي';
       case 'deep': return 'التحليل العميق';
       default: return 'التحليل الأساسي';
+    }
+  };
+
+  const exportToPDF = async () => {
+    if (!analysis) return;
+
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      // إعداد الخط للعربية
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(16);
+      
+      // عنوان التقرير
+      doc.text('تقرير تحليل فكرة المشروع', 105, 20, { align: 'center' });
+      
+      let yPosition = 40;
+      const lineHeight = 7;
+      const margin = 20;
+      
+      // معلومات أساسية
+      doc.setFontSize(12);
+      doc.text(`نوع التحليل: ${getAnalysisTypeName(analysisType)}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`تاريخ التحليل: ${new Date().toLocaleDateString('ar-EG')}`, margin, yPosition);
+      yPosition += lineHeight * 2;
+      
+      // النتائج الرئيسية
+      doc.setFontSize(14);
+      doc.text('النتائج الرئيسية:', margin, yPosition);
+      yPosition += lineHeight;
+      doc.setFontSize(10);
+      doc.text(`التقييم العام: ${analysis.overall_score}%`, margin + 10, yPosition);
+      yPosition += lineHeight;
+      doc.text(`إمكانية السوق: ${analysis.market_potential}%`, margin + 10, yPosition);
+      yPosition += lineHeight;
+      doc.text(`قابلية التنفيذ: ${analysis.feasibility}%`, margin + 10, yPosition);
+      yPosition += lineHeight;
+      doc.text(`مستوى المخاطر: ${analysis.risk_level}%`, margin + 10, yPosition);
+      yPosition += lineHeight * 2;
+      
+      // نقاط القوة
+      doc.setFontSize(12);
+      doc.text('نقاط القوة:', margin, yPosition);
+      yPosition += lineHeight;
+      doc.setFontSize(9);
+      analysis.strengths.forEach((strength, index) => {
+        const lines = doc.splitTextToSize(`• ${strength}`, 170);
+        lines.forEach((line: string) => {
+          doc.text(line, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+      });
+      yPosition += lineHeight;
+      
+      // نقاط الضعف
+      doc.setFontSize(12);
+      doc.text('نقاط الضعف:', margin, yPosition);
+      yPosition += lineHeight;
+      doc.setFontSize(9);
+      analysis.weaknesses.forEach((weakness, index) => {
+        const lines = doc.splitTextToSize(`• ${weakness}`, 170);
+        lines.forEach((line: string) => {
+          doc.text(line, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+      });
+      yPosition += lineHeight;
+      
+      // التوصيات
+      doc.setFontSize(12);
+      doc.text('التوصيات:', margin, yPosition);
+      yPosition += lineHeight;
+      doc.setFontSize(9);
+      analysis.recommendations.forEach((recommendation, index) => {
+        const lines = doc.splitTextToSize(`• ${recommendation}`, 170);
+        lines.forEach((line: string) => {
+          doc.text(line, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+      });
+      
+      // إضافة صفحة جديدة إذا لزم الأمر
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // الخطوات التالية
+      if (analysis.next_steps) {
+        yPosition += lineHeight;
+        doc.setFontSize(12);
+        doc.text('الخطوات التالية:', margin, yPosition);
+        yPosition += lineHeight;
+        doc.setFontSize(9);
+        
+        if (analysis.next_steps.phase_1?.length > 0) {
+          doc.text('المرحلة الأولى:', margin + 5, yPosition);
+          yPosition += lineHeight;
+          analysis.next_steps.phase_1.forEach(step => {
+            const lines = doc.splitTextToSize(`• ${step}`, 165);
+            lines.forEach((line: string) => {
+              doc.text(line, margin + 10, yPosition);
+              yPosition += lineHeight;
+            });
+          });
+        }
+        
+        if (analysis.next_steps.phase_2?.length > 0) {
+          yPosition += lineHeight;
+          doc.text('المرحلة الثانية:', margin + 5, yPosition);
+          yPosition += lineHeight;
+          analysis.next_steps.phase_2.forEach(step => {
+            const lines = doc.splitTextToSize(`• ${step}`, 165);
+            lines.forEach((line: string) => {
+              doc.text(line, margin + 10, yPosition);
+              yPosition += lineHeight;
+            });
+          });
+        }
+        
+        if (analysis.next_steps.timeline) {
+          yPosition += lineHeight;
+          doc.text(`الجدول الزمني: ${analysis.next_steps.timeline}`, margin + 5, yPosition);
+        }
+      }
+      
+      // حفظ الملف
+      doc.save(`تحليل-المشروع-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم حفظ تقرير التحليل كملف PDF",
+      });
+    } catch (error) {
+      console.error('خطأ في تصدير PDF:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل في إنشاء ملف PDF",
+        variant: "destructive",
+      });
     }
   };
 
@@ -529,6 +680,76 @@ const BusinessAnalysis = () => {
             </div>
           )}
 
+          {/* الخطوات التالية */}
+          {analysis.next_steps && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowRight className="w-5 h-5 text-primary" />
+                  الخطوات التالية لمشروعك
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                      <h4 className="font-semibold text-sm">المرحلة الأولى</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {analysis.next_steps.phase_1?.map((step, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
+                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0" />
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                      <h4 className="font-semibold text-sm">المرحلة الثانية</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {analysis.next_steps.phase_2?.map((step, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 flex-shrink-0" />
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                      <h4 className="font-semibold text-sm">المرحلة الثالثة</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {analysis.next_steps.phase_3?.map((step, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
+                          <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 flex-shrink-0" />
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                {analysis.next_steps.timeline && (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      الجدول الزمني المقترح
+                    </h4>
+                    <p className="text-sm text-muted-foreground">{analysis.next_steps.timeline}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* الأسئلة التفاعلية */}
           {analysis.interactive_questions && !isInteractiveMode && (
             <Card className="border-primary/20 bg-primary/5">
@@ -767,6 +988,21 @@ const BusinessAnalysis = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* زر تحميل PDF */}
+          <Card>
+            <CardContent className="pt-6">
+              <Button 
+                onClick={exportToPDF}
+                variant="outline"
+                size="lg"
+                className="w-full"
+              >
+                <Download className="w-4 h-4" />
+                تحميل التحليل كملف PDF
+              </Button>
             </CardContent>
           </Card>
         </div>
