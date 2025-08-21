@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, Brain, Zap } from "lucide-react";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn } from "lucide-react";
 import AnalysisProgress from "./AnalysisProgress";
 
 interface AnalysisResult {
@@ -129,13 +129,13 @@ const BusinessAnalysis = () => {
                 </SelectItem>
                 <SelectItem value="interactive">
                   <div className="flex items-center gap-2">
-                    <Brain className="w-4 h-4" />
+                    <Target className="w-4 h-4" />
                     تحليل تفاعلي - مع أسئلة إضافية
                   </div>
                 </SelectItem>
                 <SelectItem value="deep">
                   <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
+                    <TrendingUp className="w-4 h-4" />
                     تحليل عميق - تفصيلي ومتقدم
                   </div>
                 </SelectItem>
