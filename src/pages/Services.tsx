@@ -84,11 +84,11 @@ const Services = () => {
         {/* Hero Section */}
         <div className="text-center max-w-4xl mx-auto mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            خدمات <span className="bg-gradient-primary bg-clip-text text-transparent">التحليل</span>
+            {t('services.hero.title')} <span className="bg-gradient-primary bg-clip-text text-transparent">{t('services.hero.titleHighlight')}</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            اختر الخدمة التي تناسب احتياجاتك وابدأ رحلة تحليل فكرتك التجارية
+            {t('services.hero.subtitle')}
           </p>
         </div>
 
@@ -109,7 +109,7 @@ const Services = () => {
                   {isPopular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <Badge className="bg-gradient-primary text-primary-foreground px-4 py-1">
-                        الأكثر شعبية
+                        {t('services.popular')}
                       </Badge>
                     </div>
                   )}
@@ -125,7 +125,7 @@ const Services = () => {
                   <CardContent className="pt-4">
                     <div className="text-center mb-6">
                       <div className="text-3xl font-bold text-primary mb-1">
-                        {service.is_free ? "مجاني" : `${service.price} ر.س`}
+                        {service.is_free ? t('services.free') : `${service.price} ر.س`}
                       </div>
                     </div>
                     
@@ -146,8 +146,8 @@ const Services = () => {
                       <Button 
                         className="w-full group" 
                         variant={isPopular ? "default" : "outline"}
-                      >
-                        ابدأ التحليل الآن
+                        >
+                        {t('services.startAnalysis')}
                         <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </Link>
@@ -161,8 +161,8 @@ const Services = () => {
         {/* Additional Services */}
         <div className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">خدمات إضافية</h2>
-            <p className="text-muted-foreground">خدمات متخصصة لدعم رحلتك التجارية</p>
+            <h2 className="text-3xl font-bold mb-4">{t('services.additional.title')}</h2>
+            <p className="text-muted-foreground">{t('services.additional.subtitle')}</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
@@ -178,7 +178,7 @@ const Services = () => {
                   <p className="text-muted-foreground mb-4">{service.description}</p>
                   <div className="text-xl font-bold text-primary mb-4">{service.price}</div>
                   <Button variant="outline" className="w-full">
-                    اطلب الخدمة
+                    {t('services.orderService')}
                   </Button>
                 </CardContent>
               </Card>
@@ -189,19 +189,19 @@ const Services = () => {
         {/* CTA Section */}
         <Card className="bg-gradient-primary text-primary-foreground">
           <CardContent className="text-center p-12">
-            <h2 className="text-3xl font-bold mb-4">هل تحتاج مساعدة في الاختيار؟</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('services.cta.title')}</h2>
             <p className="text-xl opacity-90 mb-8">
-              تواصل مع فريقنا للحصول على استشارة مجانية حول أفضل خدمة تناسب احتياجاتك
+              {t('services.cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/contact">
                 <Button variant="secondary" size="lg">
-                  تواصل معنا
+                  {t('services.cta.contact')}
                 </Button>
               </Link>
               <Link to="/">
                 <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  ابدأ بالتحليل المجاني
+                  {t('services.cta.startFree')}
                 </Button>
               </Link>
             </div>

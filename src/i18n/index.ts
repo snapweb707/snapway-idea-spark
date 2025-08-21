@@ -126,6 +126,21 @@ const resources = {
       "services.businessPlanDevelopmentDesc": "إعداد خطة عمل شاملة جاهزة للمستثمرين",
       "services.businessPlanDevelopmentPrice": "299 ر.س",
 
+      // Services page
+      "services.hero.title": "خدمات",
+      "services.hero.titleHighlight": "التحليل",
+      "services.hero.subtitle": "اختر الخدمة التي تناسب احتياجاتك وابدأ رحلة تحليل فكرتك التجارية",
+      "services.popular": "الأكثر شعبية",
+      "services.free": "مجاني",
+      "services.startAnalysis": "ابدأ التحليل الآن",
+      "services.additional.title": "خدمات إضافية",
+      "services.additional.subtitle": "خدمات متخصصة لدعم رحلتك التجارية",
+      "services.orderService": "اطلب الخدمة",
+      "services.cta.title": "هل تحتاج مساعدة في الاختيار؟",
+      "services.cta.subtitle": "تواصل مع فريقنا للحصول على استشارة مجانية حول أفضل خدمة تناسب احتياجاتك",
+      "services.cta.contact": "تواصل معنا",
+      "services.cta.startFree": "ابدأ بالتحليل المجاني",
+
       // Home page
       "home.hero.title": "حلل أفكارك التجارية بـ",
       "home.hero.titleHighlight": "الذكاء الاصطناعي",
@@ -345,6 +360,21 @@ const resources = {
       "services.businessPlanDevelopment": "Business Plan Development",
       "services.businessPlanDevelopmentDesc": "Preparation of comprehensive business plan ready for investors",
       "services.businessPlanDevelopmentPrice": "$299",
+
+      // Services page
+      "services.hero.title": "Analysis",
+      "services.hero.titleHighlight": "Services",
+      "services.hero.subtitle": "Choose the service that suits your needs and start your business idea analysis journey",
+      "services.popular": "Most Popular",
+      "services.free": "Free",
+      "services.startAnalysis": "Start Analysis Now",
+      "services.additional.title": "Additional Services",
+      "services.additional.subtitle": "Specialized services to support your business journey",
+      "services.orderService": "Order Service",
+      "services.cta.title": "Need Help Choosing?",
+      "services.cta.subtitle": "Contact our team for free consultation on the best service for your needs",
+      "services.cta.contact": "Contact Us",
+      "services.cta.startFree": "Start Free Analysis",
 
       // Home page
       "home.hero.title": "Analyze Your Business Ideas with",
