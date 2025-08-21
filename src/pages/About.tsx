@@ -3,38 +3,41 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const About = () => {
+  const { t } = useTranslation();
+  
   const features = [
     {
       icon: Brain,
-      title: "تحليل ذكي بالذكاء الاصطناعي",
-      description: "نستخدم أحدث تقنيات الذكاء الاصطناعي لتحليل أفكارك التجارية بدقة عالية"
+      title: t('about.features.aiAnalysis'),
+      description: t('about.features.aiAnalysisDesc')
     },
     {
       icon: Target,
-      title: "تحديد الجمهور المستهدف",
-      description: "نساعدك في تحديد عملائك المثاليين ووضع استراتيجية دقيقة للوصول إليهم"
+      title: t('about.features.targetAudience'),
+      description: t('about.features.targetAudienceDesc')
     },
     {
       icon: BarChart3,
-      title: "تحليل المنافسين",
-      description: "دراسة شاملة للسوق والمنافسين لتحديد نقاط القوة والضعف"
+      title: t('about.features.competitorAnalysis'),
+      description: t('about.features.competitorAnalysisDesc')
     },
     {
       icon: TrendingUp,
-      title: "توقعات مالية",
-      description: "تقديرات دقيقة للعوائد المتوقعة والتكاليف والنمو المستقبلي"
+      title: t('about.features.financialPredictions'),
+      description: t('about.features.financialPredictionsDesc')
     }
   ];
 
   const benefits = [
-    "توفير الوقت والجهد في دراسة الجدوى",
-    "تحليل شامل وموضوعي للفكرة",
-    "تحديد المخاطر والفرص",
-    "خطة عمل واضحة ومفصلة",
-    "تقييم مالي دقيق",
-    "استراتيجية تسويقية فعالة"
+    t('about.benefits.timeSaving'),
+    t('about.benefits.comprehensiveAnalysis'),
+    t('about.benefits.riskIdentification'),
+    t('about.benefits.clearPlan'),
+    t('about.benefits.accurateEvaluation'),
+    t('about.benefits.effectiveStrategy')
   ];
 
   return (
@@ -51,12 +54,11 @@ const About = () => {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            عن <span className="bg-gradient-primary bg-clip-text text-transparent">Snapway</span>
+            {t('about.title')} <span className="bg-gradient-primary bg-clip-text text-transparent">Snapway</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            منصة متقدمة لتحليل الأفكار التجارية باستخدام الذكاء الاصطناعي، 
-            نساعد رواد الأعمال والمستثمرين في اتخاذ قرارات مدروسة ومبنية على بيانات دقيقة
+            {t('about.description')}
           </p>
         </div>
 
@@ -80,7 +82,7 @@ const About = () => {
         {/* Benefits Section */}
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
           <div>
-            <h2 className="text-3xl font-bold mb-6">لماذا تختار Snapway؟</h2>
+            <h2 className="text-3xl font-bold mb-6">{t('about.whyChoose')}</h2>
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -98,15 +100,15 @@ const About = () => {
               <div className="flex justify-center mb-4">
                 <Star className="w-8 h-8" />
               </div>
-              <CardTitle className="text-2xl">ابدأ رحلتك التجارية</CardTitle>
+              <CardTitle className="text-2xl">{t('about.startJourney')}</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="mb-6 opacity-90">
-                حول فكرتك إلى مشروع ناجح مع تحليل شامل ومدروس
+                {t('about.startJourneyDesc')}
               </p>
               <Link to="/">
                 <Button variant="secondary" size="lg" className="w-full group">
-                  تحليل فكرتك الآن
+                  {t('about.analyzeNow')}
                   <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -114,25 +116,24 @@ const About = () => {
           </Card>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="p-6">
-            <div className="text-3xl font-bold text-primary mb-2">500+</div>
-            <div className="text-muted-foreground">فكرة تم تحليلها</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="p-6">
+              <div className="text-3xl font-bold text-primary mb-2">500+</div>
+              <div className="text-muted-foreground">{t('about.stats.ideasAnalyzed')}</div>
+            </div>
+            <div className="p-6">
+              <div className="text-3xl font-bold text-primary mb-2">95%</div>
+              <div className="text-muted-foreground">{t('about.stats.accuracyRate')}</div>
+            </div>
+            <div className="p-6">
+              <div className="text-3xl font-bold text-primary mb-2">24/7</div>
+              <div className="text-muted-foreground">{t('about.stats.continuousService')}</div>
+            </div>
+            <div className="p-6">
+              <div className="text-3xl font-bold text-primary mb-2">10{t('about.stats.minutes')}</div>
+              <div className="text-muted-foreground">{t('about.stats.avgAnalysisTime')}</div>
+            </div>
           </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-primary mb-2">95%</div>
-            <div className="text-muted-foreground">معدل الدقة</div>
-          </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-            <div className="text-muted-foreground">خدمة متواصلة</div>
-          </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-primary mb-2">10د</div>
-            <div className="text-muted-foreground">متوسط وقت التحليل</div>
-          </div>
-        </div>
       </main>
     </div>
   );

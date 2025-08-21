@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next';
 
 const Services = () => {
+  const { t } = useTranslation();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,21 +46,21 @@ const Services = () => {
   const additionalServices = [
     {
       icon: TrendingUp,
-      title: "استشارة شخصية",
-      description: "جلسة استشارية مع خبير لمناقشة فكرتك التجارية",
-      price: "99 ر.س/ساعة"
+      title: t('services.personalConsultation'),
+      description: t('services.personalConsultationDesc'),
+      price: t('services.personalConsultationPrice')
     },
     {
       icon: Shield,
-      title: "حماية الفكرة",
-      description: "خدمات الحماية القانونية وتسجيل العلامة التجارية",
-      price: "199 ر.س"
+      title: t('services.ideaProtection'),
+      description: t('services.ideaProtectionDesc'),
+      price: t('services.ideaProtectionPrice')
     },
     {
       icon: Rocket,
-      title: "تطوير خطة العمل",
-      description: "إعداد خطة عمل شاملة جاهزة للمستثمرين",
-      price: "299 ر.س"
+      title: t('services.businessPlanDevelopment'),
+      description: t('services.businessPlanDevelopmentDesc'),
+      price: t('services.businessPlanDevelopmentPrice')
     }
   ];
 
@@ -68,7 +70,7 @@ const Services = () => {
         <Header />
         <div className="container mx-auto px-4 py-12 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">جاري تحميل الخدمات...</p>
+          <p className="mt-4 text-muted-foreground">{t('services.loading')}</p>
         </div>
       </div>
     );
