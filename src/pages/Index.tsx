@@ -3,11 +3,13 @@ import Header from "@/components/Header";
 import BusinessAnalysis from "@/components/BusinessAnalysis";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import { Brain, TrendingUp, Target, BarChart3, Users, Lightbulb, LogIn, UserPlus } from "lucide-react";
 import heroImage from "@/assets/hero-analysis.jpg";
 
 const Index = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -21,9 +23,9 @@ const Index = () => {
             <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
               <Lightbulb className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h2 className="text-3xl font-bold mb-4">حلل فكرتك الآن</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('home.analysis.title')}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              اشرح فكرة مشروعك واحصل على تحليل مفصل في دقائق
+              {t('home.analysis.subtitle')}
             </p>
           </div>
           
@@ -38,30 +40,29 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-right space-y-6">
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                حلل أفكارك التجارية بـ
+                {t('home.hero.title')}
                 <span className="bg-gradient-primary bg-clip-text text-transparent block">
-                  الذكاء الاصطناعي
+                  {t('home.hero.titleHighlight')}
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl">
-                احصل على تحليل شامل ومفصل لفكرة مشروعك التجاري باستخدام أحدث تقنيات الذكاء الاصطناعي. 
-                اكتشف نقاط القوة والضعف والفرص المتاحة.
+                {t('home.hero.subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 {user ? (
-                  <Button 
+                    <Button 
                     variant="hero" 
                     size="lg"
                     onClick={() => document.getElementById('analysis-section')?.scrollIntoView({ behavior: 'smooth' })}
                   >
                     <BarChart3 className="w-5 h-5" />
-                    ابدأ التحليل الآن
+                    {t('home.hero.analyze')}
                   </Button>
                 ) : (
                   <Link to="/auth">
                     <Button variant="hero" size="lg">
                       <LogIn className="w-5 h-5" />
-                      تسجيل الدخول
+                      {t('home.hero.login')}
                     </Button>
                   </Link>
                 )}
@@ -69,7 +70,7 @@ const Index = () => {
                   <Link to="/auth">
                     <Button variant="premium" size="lg">
                       <UserPlus className="w-5 h-5" />
-                      إنشاء حساب
+                      {t('home.hero.signup')}
                     </Button>
                   </Link>
                 )}
@@ -77,7 +78,7 @@ const Index = () => {
                   <Link to="/products">
                     <Button variant="premium" size="lg">
                       <Users className="w-5 h-5" />
-                      شاهد المنتجات
+                      {t('home.hero.products')}
                     </Button>
                   </Link>
                 )}
@@ -88,7 +89,7 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-primary opacity-20 rounded-3xl blur-3xl"></div>
               <img 
                 src={heroImage}
-                alt="تحليل الأعمال بالذكاء الاصطناعي"
+                alt={t('home.hero.titleHighlight')}
                 className="relative w-full h-[400px] object-cover rounded-3xl shadow-elegant"
               />
             </div>
@@ -100,9 +101,9 @@ const Index = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">مزايا منصة Snapway</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('home.features.title')}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              نوفر لك أدوات متقدمة لتحليل أفكارك التجارية بدقة واحترافية
+              {t('home.features.subtitle')}
             </p>
           </div>
           
@@ -111,9 +112,9 @@ const Index = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Brain className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">تحليل ذكي</h3>
+              <h3 className="text-xl font-semibold mb-3">{t('home.features.smart.title')}</h3>
               <p className="text-muted-foreground">
-                استخدام أحدث نماذج الذكاء الاصطناعي لتحليل أفكارك بدقة عالية
+                {t('home.features.smart.desc')}
               </p>
             </div>
             
@@ -121,9 +122,9 @@ const Index = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">تقييم شامل</h3>
+              <h3 className="text-xl font-semibold mb-3">{t('home.features.comprehensive.title')}</h3>
               <p className="text-muted-foreground">
-                تحليل متعدد الأبعاد يشمل السوق والجدوى والمخاطر والفرص
+                {t('home.features.comprehensive.desc')}
               </p>
             </div>
             
@@ -131,9 +132,9 @@ const Index = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">توصيات عملية</h3>
+              <h3 className="text-xl font-semibold mb-3">{t('home.features.practical.title')}</h3>
               <p className="text-muted-foreground">
-                نصائح وتوصيات قابلة للتطبيق لتطوير فكرتك وزيادة فرص نجاحها
+                {t('home.features.practical.desc')}
               </p>
             </div>
           </div>

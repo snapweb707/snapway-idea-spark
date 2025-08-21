@@ -6,9 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 const Contact = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,8 +26,8 @@ const Contact = () => {
     // محاكاة إرسال الرسالة
     setTimeout(() => {
       toast({
-        title: "تم إرسال الرسالة",
-        description: "شكراً لتواصلك معنا. سنرد عليك قريباً",
+        title: t('contact.form.success'),
+        description: t('contact.form.successDesc'),
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
       setIsSubmitting(false);
@@ -42,27 +44,27 @@ const Contact = () => {
   const contactInfo = [
     {
       icon: Mail,
-      title: "البريد الإلكتروني",
-      info: "info@snapway.com",
-      description: "راسلنا في أي وقت"
+      title: t('contact.info.email.title'),
+      info: t('contact.info.email.value'),
+      description: t('contact.info.email.desc')
     },
     {
       icon: Phone,
-      title: "الهاتف",
-      info: "+966 50 123 4567",
-      description: "متاح 24/7"
+      title: t('contact.info.phone.title'),
+      info: t('contact.info.phone.value'),
+      description: t('contact.info.phone.desc')
     },
     {
       icon: MapPin,
-      title: "العنوان",
-      info: "الرياض، المملكة العربية السعودية",
-      description: "مقر الشركة الرئيسي"
+      title: t('contact.info.address.title'),
+      info: t('contact.info.address.value'),
+      description: t('contact.info.address.desc')
     },
     {
       icon: Clock,
-      title: "ساعات العمل",
-      info: "على مدار الساعة",
-      description: "خدمة متواصلة"
+      title: t('contact.info.hours.title'),
+      info: t('contact.info.hours.value'),
+      description: t('contact.info.hours.desc')
     }
   ];
 
@@ -80,11 +82,11 @@ const Contact = () => {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            تواصل <span className="bg-gradient-primary bg-clip-text text-transparent">معنا</span>
+            {t('contact.title')}
           </h1>
           
           <p className="text-xl text-muted-foreground leading-relaxed">
-            نحن هنا لمساعدتك. تواصل معنا لأي استفسار أو اقتراح
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -93,30 +95,30 @@ const Contact = () => {
           <div className="lg:col-span-2">
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle className="text-2xl">إرسال رسالة</CardTitle>
+                <CardTitle className="text-2xl">{t('contact.form.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium mb-2 block">الاسم</label>
+                      <label className="text-sm font-medium mb-2 block">{t('contact.form.name')}</label>
                       <Input
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="اسمك الكامل"
+                        placeholder={t('contact.form.namePlaceholder')}
                         required
                         className="bg-background/50"
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-medium mb-2 block">البريد الإلكتروني</label>
+                      <label className="text-sm font-medium mb-2 block">{t('contact.form.email')}</label>
                       <Input
                         name="email"
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="email@example.com"
+                        placeholder={t('contact.form.emailPlaceholder')}
                         required
                         className="bg-background/50"
                       />
@@ -124,24 +126,24 @@ const Contact = () => {
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">الموضوع</label>
+                    <label className="text-sm font-medium mb-2 block">{t('contact.form.subject')}</label>
                     <Input
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      placeholder="موضوع الرسالة"
+                      placeholder={t('contact.form.subjectPlaceholder')}
                       required
                       className="bg-background/50"
                     />
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">الرسالة</label>
+                    <label className="text-sm font-medium mb-2 block">{t('contact.form.message')}</label>
                     <Textarea
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="اكتب رسالتك هنا..."
+                      placeholder={t('contact.form.messagePlaceholder')}
                       required
                       rows={6}
                       className="bg-background/50 resize-none"
@@ -155,10 +157,10 @@ const Contact = () => {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
-                      "جاري الإرسال..."
+                      t('contact.form.sending')
                     ) : (
                       <>
-                        إرسال الرسالة
+                        {t('contact.form.send')}
                         <Send className="w-4 h-4 mr-2" />
                       </>
                     )}
@@ -192,55 +194,51 @@ const Contact = () => {
         {/* FAQ Section */}
         <div className="mt-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">الأسئلة الشائعة</h2>
-            <p className="text-muted-foreground">إجابات على أكثر الأسئلة شيوعاً</p>
+            <h2 className="text-3xl font-bold mb-4">{t('contact.faq.title')}</h2>
+            <p className="text-muted-foreground">{t('contact.faq.subtitle')}</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">كيف يعمل التحليل؟</CardTitle>
+                <CardTitle className="text-lg">{t('contact.faq.howItWorks.question')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  نستخدم الذكاء الاصطناعي لتحليل فكرتك من جوانب متعددة: السوق، المنافسين، 
-                  الجدوى المالية، والاستراتيجية التسويقية
+                  {t('contact.faq.howItWorks.answer')}
                 </p>
               </CardContent>
             </Card>
             
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">كم يستغرق التحليل؟</CardTitle>
+                <CardTitle className="text-lg">{t('contact.faq.duration.question')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  التحليل السريع يستغرق دقائق قليلة، بينما التحليل العميق قد يستغرق 
-                  حتى 15 دقيقة للحصول على نتائج شاملة
+                  {t('contact.faq.duration.answer')}
                 </p>
               </CardContent>
             </Card>
             
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">هل البيانات آمنة؟</CardTitle>
+                <CardTitle className="text-lg">{t('contact.faq.security.question')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  نعم، جميع البيانات محمية ومشفرة. نحن نلتزم بأعلى معايير الأمان 
-                  وحماية خصوصية المستخدمين
+                  {t('contact.faq.security.answer')}
                 </p>
               </CardContent>
             </Card>
             
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">هل يمكنني حفظ التحليل؟</CardTitle>
+                <CardTitle className="text-lg">{t('contact.faq.save.question')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  نعم، بعد التسجيل يمكنك حفظ جميع تحليلاتك والرجوع إليها في أي وقت 
-                  من خلال حسابك الشخصي
+                  {t('contact.faq.save.answer')}
                 </p>
               </CardContent>
             </Card>

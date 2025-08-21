@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Clock, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AnalysisStep {
   id: string;
@@ -16,60 +17,61 @@ interface AnalysisProgressProps {
   onComplete?: () => void;
 }
 
-const analysisSteps: AnalysisStep[] = [
+const getAnalysisSteps = (t: any): AnalysisStep[] => [
   {
     id: "market",
-    title: "دراسة السوق",
-    description: "تحليل حجم السوق والفرص المتاحة",
+    title: t('analysisProgress.steps.market.title'),
+    description: t('analysisProgress.steps.market.desc'),
     duration: 3000,
     completed: false
   },
   {
     id: "feasibility",
-    title: "تقييم الجدوى",
-    description: "دراسة إمكانية تنفيذ المشروع",
+    title: t('analysisProgress.steps.feasibility.title'),
+    description: t('analysisProgress.steps.feasibility.desc'),
     duration: 2500,
     completed: false
   },
   {
     id: "competition",
-    title: "تحليل المنافسين",
-    description: "دراسة المنافسة في السوق",
+    title: t('analysisProgress.steps.competition.title'),
+    description: t('analysisProgress.steps.competition.desc'),
     duration: 2000,
     completed: false
   },
   {
     id: "strengths",
-    title: "تحديد نقاط القوة",
-    description: "تحليل المزايا التنافسية للمشروع",
+    title: t('analysisProgress.steps.strengths.title'),
+    description: t('analysisProgress.steps.strengths.desc'),
     duration: 1500,
     completed: false
   },
   {
     id: "weaknesses",
-    title: "تحديد نقاط الضعف",
-    description: "تحليل التحديات والمخاطر المحتملة",
+    title: t('analysisProgress.steps.weaknesses.title'),
+    description: t('analysisProgress.steps.weaknesses.desc'),
     duration: 1500,
     completed: false
   },
   {
     id: "recommendations",
-    title: "وضع التوصيات",
-    description: "تقديم اقتراحات لتحسين المشروع",
+    title: t('analysisProgress.steps.recommendations.title'),
+    description: t('analysisProgress.steps.recommendations.desc'),
     duration: 2000,
     completed: false
   }
 ];
 
 const AnalysisProgress = ({ isAnalyzing, onComplete }: AnalysisProgressProps) => {
-  const [steps, setSteps] = useState<AnalysisStep[]>(analysisSteps);
+  const { t } = useTranslation();
+  const [steps, setSteps] = useState<AnalysisStep[]>(getAnalysisSteps(t));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!isAnalyzing) {
       // Reset when not analyzing
-      setSteps(analysisSteps.map(step => ({ ...step, completed: false })));
+      setSteps(getAnalysisSteps(t).map(step => ({ ...step, completed: false })));
       setCurrentStepIndex(0);
       setProgress(0);
       return;
@@ -119,10 +121,10 @@ const AnalysisProgress = ({ isAnalyzing, onComplete }: AnalysisProgressProps) =>
       <CardContent className="pt-6">
         <div className="space-y-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">جاري تحليل فكرة مشروعك...</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('analysisProgress.title')}</h3>
             <Progress value={progress} className="w-full h-2" />
             <p className="text-sm text-muted-foreground mt-2">
-              {Math.round(progress)}% مكتمل
+              {Math.round(progress)}% {t('analysisProgress.completed')}
             </p>
           </div>
 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import { Package, Globe, Image, BarChart3, ShoppingCart, Star } from "lucide-react";
 import Header from "@/components/Header";
 
@@ -13,6 +14,7 @@ const Products = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchProducts();
@@ -46,10 +48,10 @@ const Products = () => {
 
   const getProductTypeName = (type: string) => {
     switch (type) {
-      case 'website': return 'مواقع الويب';
-      case 'image': return 'الصور';
-      case 'analysis': return 'التحليل';
-      default: return 'منتج';
+      case 'website': return t('products.types.website');
+      case 'image': return t('products.types.image');
+      case 'analysis': return t('products.types.analysis');
+      default: return t('products.types.default');
     }
   };
 
@@ -61,7 +63,7 @@ const Products = () => {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">جاري تحميل المنتجات...</p>
+              <p className="mt-4 text-muted-foreground">{t('products.loading')}</p>
             </div>
           </div>
         </div>
@@ -79,9 +81,9 @@ const Products = () => {
             <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
               <ShoppingCart className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">منتجات الذكاء الاصطناعي</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('products.title')}</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              اكتشف مجموعة متنوعة من حلول الذكاء الاصطناعي لتلبية احتياجاتك التقنية
+              {t('products.subtitle')}
             </p>
           </div>
 
@@ -89,8 +91,8 @@ const Products = () => {
             <Card className="shadow-elegant border-border/50">
               <CardContent className="text-center py-12">
                 <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">لا توجد منتجات متاحة</h3>
-                <p className="text-muted-foreground">سيتم إضافة المنتجات قريباً</p>
+                <h3 className="text-xl font-semibold mb-2">{t('products.noProducts')}</h3>
+                <p className="text-muted-foreground">{t('products.comingSoon')}</p>
               </CardContent>
             </Card>
           ) : (
@@ -115,7 +117,7 @@ const Products = () => {
                     
                     {product.features && (
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm">المميزات:</h4>
+                        <h4 className="font-medium text-sm">{t('products.features')}</h4>
                         <div className="flex flex-wrap gap-1">
                           {Object.entries(product.features).slice(0, 3).map(([key, value]) => (
                             <Badge key={key} variant="outline" className="text-xs">
@@ -129,7 +131,7 @@ const Products = () => {
                     <div className="flex items-center justify-between pt-2">
                       {product.is_free ? (
                         <div className="text-lg font-bold text-green-600">
-                          مجاني
+                          {t('products.free')}
                         </div>
                       ) : product.price ? (
                         <div className="text-lg font-bold text-primary">
@@ -137,7 +139,7 @@ const Products = () => {
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">
-                          السعر عند الطلب
+                          {t('products.priceOnRequest')}
                         </div>
                       )}
                       
@@ -154,12 +156,12 @@ const Products = () => {
                         onClick={() => window.open(product.url, '_blank')}
                       >
                         <Globe className="w-4 h-4 mr-2" />
-                        زيارة المنتج
+                        {t('products.visit')}
                       </Button>
                     ) : (
                       <Button className="w-full" variant="default">
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        طلب المنتج
+                        {t('products.order')}
                       </Button>
                     )}
                   </CardContent>
@@ -170,12 +172,12 @@ const Products = () => {
 
           <Card className="shadow-elegant border-border/50 bg-gradient-glow">
             <CardContent className="text-center py-8">
-              <h3 className="font-semibold mb-2">هل تحتاج منتج مخصص؟</h3>
+              <h3 className="font-semibold mb-2">{t('products.custom.title')}</h3>
               <p className="text-muted-foreground text-sm mb-4">
-                نوفر حلول ذكاء اصطناعي مخصصة حسب احتياجاتك
+                {t('products.custom.subtitle')}
               </p>
               <Button variant="premium">
-                تواصل معنا
+                {t('products.custom.contact')}
               </Button>
             </CardContent>
           </Card>
