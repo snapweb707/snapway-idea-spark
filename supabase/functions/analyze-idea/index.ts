@@ -331,7 +331,28 @@ ${language === 'en' ? `Important instructions:
       console.error('OpenRouter API error:', response.status, response.statusText);
       const errorText = await response.text();
       console.error('Error response:', errorText);
-      throw new Error("فشل في الحصول على التحليل من OpenRouter");
+      
+      // Try to extract more specific error information
+      let specificError = "فشل في الحصول على التحليل من OpenRouter";
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error && errorData.error.message) {
+          specificError = `خطأ OpenRouter: ${errorData.error.message}`;
+        } else if (errorData.message) {
+          specificError = `خطأ OpenRouter: ${errorData.message}`;
+        }
+      } catch (e) {
+        // If JSON parsing fails, use status code
+        if (response.status === 401) {
+          specificError = "خطأ في مفتاح API - يرجى التحقق من إعدادات OpenRouter";
+        } else if (response.status === 429) {
+          specificError = "تم تجاوز حد الاستخدام - يرجى المحاولة لاحقاً";
+        } else if (response.status >= 500) {
+          specificError = "خطأ في خدمة OpenRouter - يرجى المحاولة لاحقاً";
+        }
+      }
+      
+      throw new Error(specificError);
     }
 
     const data = await response.json();
