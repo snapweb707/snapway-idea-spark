@@ -5,12 +5,15 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, Brain, Zap, Settings, Package, LogOut, User, LogIn, Shield, History } from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -18,15 +21,15 @@ const Header = () => {
   };
 
   const navigationItems = [
-    { href: "/", label: "الرئيسية" },
-    { href: "/services", label: "الخدمات" },
-    { href: "/products", label: "المنتجات" },
-    { href: "/about", label: "عن المنصة" },
-    { href: "/contact", label: "تواصل معنا" },
+    { href: "/", label: t('home') },
+    { href: "/services", label: t('services') },
+    { href: "/products", label: t('products') },
+    { href: "/about", label: t('about') },
+    { href: "/contact", label: t('contact') },
   ];
 
   const adminItems = [
-    { href: "/admin", label: "لوحة التحكم", icon: Shield },
+    { href: "/admin", label: t('adminDashboard'), icon: Shield },
   ];
 
   return (
@@ -80,6 +83,7 @@ const Header = () => {
 
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -98,7 +102,7 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/history" className="flex items-center gap-2 w-full">
                       <History className="w-4 h-4" />
-                      تاريخ التحليلات
+                       {t('history')}
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
@@ -107,7 +111,7 @@ const Header = () => {
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="flex items-center gap-2 w-full">
                           <Settings className="w-4 h-4" />
-                          إعدادات النظام
+                          {t('systemSettings')}
                         </Link>
                       </DropdownMenuItem>
                     </>
@@ -115,7 +119,7 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-red-600">
                     <LogOut className="w-4 h-4" />
-                    تسجيل الخروج
+                     {t('signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -182,7 +186,7 @@ const Header = () => {
                             className="w-full justify-start"
                           >
                             <History className="w-4 h-4 mr-2" />
-                            تاريخ التحليلات
+                            {t('history')}
                           </Button>
                         </Link>
                         <Button
@@ -191,14 +195,14 @@ const Header = () => {
                           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <LogOut className="w-4 h-4 mr-2" />
-                          تسجيل الخروج
+                          {t('signOut')}
                         </Button>
                       </div>
                     ) : (
                       <Link to="/auth" onClick={() => setIsOpen(false)}>
                         <Button variant="default" className="w-full">
                           <LogIn className="w-4 h-4 mr-2" />
-                          تسجيل الدخول
+                          {t('signIn')}
                         </Button>
                       </Link>
                     )}
