@@ -170,6 +170,7 @@ const BusinessAnalysis = () => {
           idea,
           analysisType: 'interactive_update',
           userId: user.id,
+          language: i18n.language,
           currentQuestion: analysis?.interactive_questions?.[currentQuestionIndex],
           userAnswer: currentAnswer,
           allAnswers: newAnswers,
@@ -268,44 +269,48 @@ const BusinessAnalysis = () => {
       reportElement.style.textAlign = 'right';
       
       // محتوى التقرير بـ HTML
+      const isArabic = i18n.language === 'ar';
+      reportElement.style.direction = isArabic ? 'rtl' : 'ltr';
+      reportElement.style.textAlign = isArabic ? 'right' : 'left';
+      
       reportElement.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h1 style="color: #2563eb; margin: 0; font-size: 24px;">Snapway</h1>
-          <h2 style="margin: 10px 0; font-size: 20px;">تقرير تحليل فكرة المشروع</h2>
-          <p style="margin: 5px 0; color: #666;">تاريخ التحليل: ${new Date().toLocaleDateString('ar-EG')}</p>
-          <p style="margin: 5px 0; color: #666;">نوع التحليل: ${getAnalysisTypeName(analysisType)}</p>
+          <h2 style="margin: 10px 0; font-size: 20px;">${isArabic ? 'تقرير تحليل فكرة المشروع' : 'Business Idea Analysis Report'}</h2>
+          <p style="margin: 5px 0; color: #666;">${isArabic ? 'تاريخ التحليل:' : 'Analysis Date:'} ${new Date().toLocaleDateString(isArabic ? 'ar-EG' : 'en-US')}</p>
+          <p style="margin: 5px 0; color: #666;">${isArabic ? 'نوع التحليل:' : 'Analysis Type:'} ${getAnalysisTypeName(analysisType)}</p>
         </div>
 
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #1e40af; border-bottom: 1px solid #ddd; padding-bottom: 5px;">النتائج الرئيسية</h3>
+          <h3 style="color: #1e40af; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'النتائج الرئيسية' : 'Key Results'}</h3>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
             <div style="background: #f8fafc; padding: 15px; border-radius: 8px;">
-              <p><strong>التقييم العام:</strong> ${analysis.overall_score}%</p>
-              <p><strong>إمكانية السوق:</strong> ${analysis.market_potential}%</p>
+              <p><strong>${isArabic ? 'التقييم العام:' : 'Overall Score:'}</strong> ${analysis.overall_score}%</p>
+              <p><strong>${isArabic ? 'إمكانية السوق:' : 'Market Potential:'}</strong> ${analysis.market_potential}%</p>
             </div>
             <div style="background: #f8fafc; padding: 15px; border-radius: 8px;">
-              <p><strong>قابلية التنفيذ:</strong> ${analysis.feasibility}%</p>
-              <p><strong>مستوى المخاطر:</strong> ${analysis.risk_level}%</p>
+              <p><strong>${isArabic ? 'قابلية التنفيذ:' : 'Feasibility:'}</strong> ${analysis.feasibility}%</p>
+              <p><strong>${isArabic ? 'مستوى المخاطر:' : 'Risk Level:'}</strong> ${analysis.risk_level}%</p>
             </div>
           </div>
         </div>
 
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #16a34a; border-bottom: 1px solid #ddd; padding-bottom: 5px;">نقاط القوة</h3>
+          <h3 style="color: #16a34a; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'نقاط القوة' : 'Strengths'}</h3>
           <ul style="margin-top: 10px;">
             ${analysis.strengths.map(strength => `<li style="margin-bottom: 8px;">${strength}</li>`).join('')}
           </ul>
         </div>
 
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #dc2626; border-bottom: 1px solid #ddd; padding-bottom: 5px;">نقاط الضعف</h3>
+          <h3 style="color: #dc2626; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'نقاط الضعف' : 'Weaknesses'}</h3>
           <ul style="margin-top: 10px;">
             ${analysis.weaknesses.map(weakness => `<li style="margin-bottom: 8px;">${weakness}</li>`).join('')}
           </ul>
         </div>
 
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #7c3aed; border-bottom: 1px solid #ddd; padding-bottom: 5px;">التوصيات</h3>
+          <h3 style="color: #7c3aed; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'التوصيات' : 'Recommendations'}</h3>
           <ol style="margin-top: 10px;">
             ${analysis.recommendations.map(rec => `<li style="margin-bottom: 8px;">${rec}</li>`).join('')}
           </ol>
@@ -313,51 +318,51 @@ const BusinessAnalysis = () => {
 
         ${analysis.next_steps ? `
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #ea580c; border-bottom: 1px solid #ddd; padding-bottom: 5px;">الخطوات التالية</h3>
+          <h3 style="color: #ea580c; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'الخطوات التالية' : 'Next Steps'}</h3>
           <div style="margin-top: 15px;">
-            <h4 style="color: #2563eb;">المرحلة الأولى:</h4>
+            <h4 style="color: #2563eb;">${isArabic ? 'المرحلة الأولى:' : 'Phase 1:'}</h4>
             <ul>
               ${analysis.next_steps.phase_1?.map(step => `<li style="margin-bottom: 5px;">${step}</li>`).join('') || ''}
             </ul>
-            <h4 style="color: #16a34a; margin-top: 15px;">المرحلة الثانية:</h4>
+            <h4 style="color: #16a34a; margin-top: 15px;">${isArabic ? 'المرحلة الثانية:' : 'Phase 2:'}</h4>
             <ul>
               ${analysis.next_steps.phase_2?.map(step => `<li style="margin-bottom: 5px;">${step}</li>`).join('') || ''}
             </ul>
-            <h4 style="color: #7c3aed; margin-top: 15px;">المرحلة الثالثة:</h4>
+            <h4 style="color: #7c3aed; margin-top: 15px;">${isArabic ? 'المرحلة الثالثة:' : 'Phase 3:'}</h4>
             <ul>
               ${analysis.next_steps.phase_3?.map(step => `<li style="margin-bottom: 5px;">${step}</li>`).join('') || ''}
             </ul>
-            ${analysis.next_steps.timeline ? `<p style="background: #f1f5f9; padding: 10px; border-radius: 5px; margin-top: 15px;"><strong>الجدول الزمني:</strong> ${analysis.next_steps.timeline}</p>` : ''}
+            ${analysis.next_steps.timeline ? `<p style="background: #f1f5f9; padding: 10px; border-radius: 5px; margin-top: 15px;"><strong>${isArabic ? 'الجدول الزمني:' : 'Timeline:'}</strong> ${analysis.next_steps.timeline}</p>` : ''}
           </div>
         </div>
         ` : ''}
 
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #0891b2; border-bottom: 1px solid #ddd; padding-bottom: 5px;">تفاصيل إضافية</h3>
+          <h3 style="color: #0891b2; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'تفاصيل إضافية' : 'Additional Details'}</h3>
           <div style="margin-top: 15px;">
-            <p style="margin-bottom: 10px;"><strong>حجم السوق:</strong> ${analysis.market_size}</p>
-            <p style="margin-bottom: 10px;"><strong>الجمهور المستهدف:</strong> ${analysis.target_audience}</p>
-            <p style="margin-bottom: 10px;"><strong>نموذج الإيرادات:</strong> ${analysis.revenue_model}</p>
-            <p style="margin-bottom: 10px;"><strong>الميزة التنافسية:</strong> ${analysis.competitive_advantage}</p>
+            <p style="margin-bottom: 10px;"><strong>${isArabic ? 'حجم السوق:' : 'Market Size:'}</strong> ${analysis.market_size}</p>
+            <p style="margin-bottom: 10px;"><strong>${isArabic ? 'الجمهور المستهدف:' : 'Target Audience:'}</strong> ${analysis.target_audience}</p>
+            <p style="margin-bottom: 10px;"><strong>${isArabic ? 'نموذج الإيرادات:' : 'Revenue Model:'}</strong> ${analysis.revenue_model}</p>
+            <p style="margin-bottom: 10px;"><strong>${isArabic ? 'الميزة التنافسية:' : 'Competitive Advantage:'}</strong> ${analysis.competitive_advantage}</p>
           </div>
         </div>
 
         ${analysis.financial_analysis ? `
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #059669; border-bottom: 1px solid #ddd; padding-bottom: 5px;">التحليل المالي</h3>
+          <h3 style="color: #059669; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${isArabic ? 'التحليل المالي' : 'Financial Analysis'}</h3>
           <div style="margin-top: 15px; background: #f0fdf4; padding: 15px; border-radius: 8px;">
-            <p style="margin-bottom: 8px;"><strong>تكلفة البدء:</strong> ${analysis.financial_analysis.startup_cost}</p>
-            <p style="margin-bottom: 8px;"><strong>المصروفات الشهرية:</strong> ${analysis.financial_analysis.monthly_expenses}</p>
-            <p style="margin-bottom: 8px;"><strong>فترة التعادل:</strong> ${analysis.financial_analysis.break_even_time}</p>
-            <p style="margin-bottom: 8px;"><strong>العائد المتوقع:</strong> ${analysis.financial_analysis.roi_projection}</p>
-            ${analysis.financial_analysis.funding_requirements ? `<p style="margin-bottom: 8px;"><strong>متطلبات التمويل:</strong> ${analysis.financial_analysis.funding_requirements}</p>` : ''}
+            <p style="margin-bottom: 8px;"><strong>${isArabic ? 'تكلفة البدء:' : 'Startup Cost:'}</strong> ${analysis.financial_analysis.startup_cost}</p>
+            <p style="margin-bottom: 8px;"><strong>${isArabic ? 'المصروفات الشهرية:' : 'Monthly Expenses:'}</strong> ${analysis.financial_analysis.monthly_expenses}</p>
+            <p style="margin-bottom: 8px;"><strong>${isArabic ? 'فترة التعادل:' : 'Break-even Time:'}</strong> ${analysis.financial_analysis.break_even_time}</p>
+            <p style="margin-bottom: 8px;"><strong>${isArabic ? 'العائد المتوقع:' : 'ROI Projection:'}</strong> ${analysis.financial_analysis.roi_projection}</p>
+            ${analysis.financial_analysis.funding_requirements ? `<p style="margin-bottom: 8px;"><strong>${isArabic ? 'متطلبات التمويل:' : 'Funding Requirements:'}</strong> ${analysis.financial_analysis.funding_requirements}</p>` : ''}
           </div>
         </div>
         ` : ''}
 
         <div style="margin-top: 40px; text-align: center; color: #666; border-top: 1px solid #ddd; padding-top: 20px;">
-          <p style="margin: 0;">تم إنشاء هذا التقرير بواسطة Snapway</p>
-          <p style="margin: 5px 0; font-size: 14px;">منصة تحليل المشاريع الذكية</p>
+          <p style="margin: 0;">${isArabic ? 'تم إنشاء هذا التقرير بواسطة Snapway' : 'This report was generated by Snapway'}</p>
+          <p style="margin: 5px 0; font-size: 14px;">${isArabic ? 'منصة تحليل المشاريع الذكية' : 'Smart Business Analysis Platform'}</p>
         </div>
       `;
 
@@ -400,18 +405,20 @@ const BusinessAnalysis = () => {
       }
 
       // حفظ الملف
-      const fileName = `Snapway-تحليل-المشروع-${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = isArabic ? 
+        `Snapway-تحليل-المشروع-${new Date().toISOString().split('T')[0]}.pdf` :
+        `Snapway-Business-Analysis-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
       toast({
-        title: "تم التصدير بنجاح",
-        description: "تم حفظ تقرير التحليل كملف PDF",
+        title: isArabic ? "تم التصدير بنجاح" : "Export Successful",
+        description: isArabic ? "تم حفظ تقرير التحليل كملف PDF" : "Analysis report saved as PDF",
       });
     } catch (error) {
       console.error('خطأ في تصدير PDF:', error);
       toast({
-        title: "خطأ في التصدير",
-        description: "فشل في إنشاء ملف PDF",
+        title: i18n.language === 'ar' ? "خطأ في التصدير" : "Export Error",
+        description: i18n.language === 'ar' ? "فشل في إنشاء ملف PDF" : "Failed to create PDF file",
         variant: "destructive",
       });
     }

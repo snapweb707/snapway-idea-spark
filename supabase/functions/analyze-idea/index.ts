@@ -33,7 +33,8 @@ serve(async (req) => {
         userAnswer,
         allAnswers,
         previousAnalysis,
-        userId
+        userId,
+        language
       });
     }
 
@@ -387,30 +388,61 @@ ${language === 'en' ? `Important instructions:
         market_potential: 50,
         feasibility: 60,
         risk_level: 65,
-        strengths: ["فكرة قابلة للتطبيق", "سوق واعد", "إمكانية نمو جيدة"],
-        weaknesses: ["يحتاج دراسة أعمق", "منافسة محتملة", "يتطلب استثمار أولي"],
-        recommendations: [
+        strengths: language === 'en' ? 
+          ["Implementable idea", "Promising market", "Good growth potential"] :
+          ["فكرة قابلة للتطبيق", "سوق واعد", "إمكانية نمو جيدة"],
+        weaknesses: language === 'en' ?
+          ["Needs deeper study", "Potential competition", "Requires initial investment"] :
+          ["يحتاج دراسة أعمق", "منافسة محتملة", "يتطلب استثمار أولي"],
+        recommendations: language === 'en' ? [
+          "Conduct detailed market research",
+          "Develop a prototype",
+          "Study costs and expected revenues",
+          "Precisely identify target audience"
+        ] : [
           "إجراء بحث سوق مفصل",
           "تطوير نموذج أولي",
           "دراسة التكاليف والإيرادات المتوقعة",
           "تحديد الجمهور المستهدف بدقة"
         ],
-        market_size: "سوق متوسط الحجم مع إمكانيات نمو",
-        target_audience: "الجمهور العام المهتم بالخدمة",
-        revenue_model: "نموذج اشتراك أو مبيعات مباشرة",
-        competitive_advantage: "خدمة مبتكرة تلبي احتياج السوق"
+        market_size: language === 'en' ? 
+          "Medium-sized market with growth potential" :
+          "سوق متوسط الحجم مع إمكانيات نمو",
+        target_audience: language === 'en' ?
+          "General public interested in the service" :
+          "الجمهور العام المهتم بالخدمة",
+        revenue_model: language === 'en' ?
+          "Subscription or direct sales model" :
+          "نموذج اشتراك أو مبيعات مباشرة",
+        competitive_advantage: language === 'en' ?
+          "Innovative service that meets market need" :
+          "خدمة مبتكرة تلبي احتياج السوق"
       };
       
       // Add type-specific fallback data and next_steps for all types
       analysis.next_steps = {
-        phase_1: ["تحديد الفكرة والهدف بوضوح", "إجراء بحث السوق الأولي", "تحديد الجمهور المستهدف"],
-        phase_2: ["تطوير نموذج أولي", "إعداد خطة العمل", "البحث عن مصادر التمويل"],
-        phase_3: ["إطلاق المشروع تجريبياً", "قياس الأداء والتحسين", "التوسع تدريجياً"],
-        timeline: "6-12 شهر للمراحل الثلاث"
+        phase_1: language === 'en' ? 
+          ["Define idea and goal clearly", "Conduct initial market research", "Identify target audience"] :
+          ["تحديد الفكرة والهدف بوضوح", "إجراء بحث السوق الأولي", "تحديد الجمهور المستهدف"],
+        phase_2: language === 'en' ?
+          ["Develop prototype", "Prepare business plan", "Search for funding sources"] :
+          ["تطوير نموذج أولي", "إعداد خطة العمل", "البحث عن مصادر التمويل"],
+        phase_3: language === 'en' ?
+          ["Launch project as pilot", "Measure performance and improve", "Expand gradually"] :
+          ["إطلاق المشروع تجريبياً", "قياس الأداء والتحسين", "التوسع تدريجياً"],
+        timeline: language === 'en' ? 
+          "6-12 months for the three phases" :
+          "6-12 شهر للمراحل الثلاث"
       };
       
       if (analysisType === 'interactive') {
-        analysis.interactive_questions = [
+        analysis.interactive_questions = language === 'en' ? [
+          "What is the main objective of your project?",
+          "Who are your potential customers specifically?",
+          "How much startup capital is required?",
+          "What is your first step for implementation?",
+          "What are the expected challenges?"
+        ] : [
           "ما هو الهدف الرئيسي من مشروعك؟",
           "من هم عملاؤك المحتملون بالتحديد؟",
           "كم رأس المال المطلوب للبدء؟",
@@ -418,28 +450,58 @@ ${language === 'en' ? `Important instructions:
           "ما هي التحديات المتوقعة؟"
         ];
         analysis.action_plan = {
-          immediate_steps: ["تحديد الفكرة بوضوح", "إجراء بحث أولي", "تحديد نموذج العمل"],
-          short_term_goals: ["تطوير نموذج أولي", "اختبار السوق", "بناء فريق العمل"],
-          long_term_vision: "بناء مشروع مستدام ومربح مع خطط للتوسع"
+          immediate_steps: language === 'en' ? 
+            ["Define idea clearly", "Conduct initial research", "Determine business model"] :
+            ["تحديد الفكرة بوضوح", "إجراء بحث أولي", "تحديد نموذج العمل"],
+          short_term_goals: language === 'en' ?
+            ["Develop prototype", "Test market", "Build team"] :
+            ["تطوير نموذج أولي", "اختبار السوق", "بناء فريق العمل"],
+          long_term_vision: language === 'en' ?
+            "Build a sustainable and profitable project with expansion plans" :
+            "بناء مشروع مستدام ومربح مع خطط للتوسع"
         };
       } else if (analysisType === 'deep') {
         analysis.financial_analysis = {
-          startup_cost: "يحتاج تقدير مفصل حسب نوع المشروع والسوق المستهدف",
-          monthly_expenses: "تقدير التكاليف الشهرية التشغيلية والإدارية مطلوب",
-          break_even_time: "6-18 شهر تقريباً حسب طبيعة المشروع",
-          roi_projection: "عائد متوقع بناءً على أداء السوق والاستراتيجية",
-          funding_requirements: "تحديد احتياجات التمويل ومصادره المناسبة"
+          startup_cost: language === 'en' ?
+            "Needs detailed estimation based on project type and target market" :
+            "يحتاج تقدير مفصل حسب نوع المشروع والسوق المستهدف",
+          monthly_expenses: language === 'en' ?
+            "Monthly operational and administrative costs estimation required" :
+            "تقدير التكاليف الشهرية التشغيلية والإدارية مطلوب",
+          break_even_time: language === 'en' ?
+            "Approximately 6-18 months depending on project nature" :
+            "6-18 شهر تقريباً حسب طبيعة المشروع",
+          roi_projection: language === 'en' ?
+            "Expected return based on market performance and strategy" :
+            "عائد متوقع بناءً على أداء السوق والاستراتيجية",
+          funding_requirements: language === 'en' ?
+            "Determine funding needs and appropriate sources" :
+            "تحديد احتياجات التمويل ومصادره المناسبة"
         };
         analysis.competitive_analysis = {
-          main_competitors: ["منافس رئيسي محلي", "منافس رئيسي إقليمي", "منافس رقمي"],
-          market_differentiation: "تحديد نقاط التميز والابتكار المطلوبة",
-          barrier_to_entry: "حواجز دخول متوسطة تتطلب استراتيجية واضحة",
-          swot_analysis: "تحليل نقاط القوة والضعف والفرص والتهديدات"
+          main_competitors: language === 'en' ?
+            ["Main local competitor", "Main regional competitor", "Digital competitor"] :
+            ["منافس رئيسي محلي", "منافس رئيسي إقليمي", "منافس رقمي"],
+          market_differentiation: language === 'en' ?
+            "Identify differentiation points and required innovation" :
+            "تحديد نقاط التميز والابتكار المطلوبة",
+          barrier_to_entry: language === 'en' ?
+            "Medium entry barriers requiring clear strategy" :
+            "حواجز دخول متوسطة تتطلب استراتيجية واضحة",
+          swot_analysis: language === 'en' ?
+            "Analysis of strengths, weaknesses, opportunities and threats" :
+            "تحليل نقاط القوة والضعف والفرص والتهديدات"
         };
         analysis.action_plan = {
-          immediate_steps: ["دراسة جدوى مفصلة", "تحليل السوق والمنافسين", "إعداد نموذج مالي"],
-          short_term_goals: ["تأمين التمويل", "بناء الفريق", "تطوير المنتج/الخدمة"],
-          long_term_vision: "بناء علامة تجارية قوية مع استراتيجية توسع محلية وإقليمية"
+          immediate_steps: language === 'en' ?
+            ["Detailed feasibility study", "Market and competitor analysis", "Financial model preparation"] :
+            ["دراسة جدوى مفصلة", "تحليل السوق والمنافسين", "إعداد نموذج مالي"],
+          short_term_goals: language === 'en' ?
+            ["Secure funding", "Build team", "Develop product/service"] :
+            ["تأمين التمويل", "بناء الفريق", "تطوير المنتج/الخدمة"],
+          long_term_vision: language === 'en' ?
+            "Build strong brand with local and regional expansion strategy" :
+            "بناء علامة تجارية قوية مع استراتيجية توسع محلية وإقليمية"
         };
       }
       
@@ -503,7 +565,7 @@ ${language === 'en' ? `Important instructions:
 });
 
 async function handleInteractiveUpdate(req: Request, params: any) {
-  const { idea, currentQuestion, userAnswer, allAnswers, previousAnalysis, userId } = params;
+  const { idea, currentQuestion, userAnswer, allAnswers, previousAnalysis, userId, language = 'ar' } = params;
   
   try {
     // Get OpenRouter API key from settings
@@ -533,7 +595,31 @@ async function handleInteractiveUpdate(req: Request, params: any) {
     const openRouterKey = settingData.setting_value;
 
     // تحديث النسب بناءً على الإجابة
-    const updatePrompt = `أنت محلل أعمال خبير. لديك تحليل سابق لفكرة مشروع، والآن المستخدم أجاب على سؤال تفاعلي.
+    const updatePrompt = language === 'en' ? 
+      `You are an expert business analyst. You have a previous analysis of a business idea, and now the user has answered an interactive question.
+
+Business idea: ${idea}
+
+Question: ${currentQuestion}
+User's answer: ${userAnswer}
+
+Previous analysis: ${JSON.stringify(previousAnalysis)}
+
+Required tasks:
+1. Update the percentages (overall_score, market_potential, feasibility, risk_level) based on the new answer
+2. Update strengths, weaknesses, and recommendations if necessary
+3. Improve financial and competitive analysis if the answer contains useful information
+4. Keep the same structure but with updated and more realistic percentages
+
+Percentage rules:
+- Percentages must be very realistic (not higher than 85% except in exceptional cases)
+- Reflect new information from user's answer
+- Be balanced and logical
+- If the answer is positive and detailed, raise percentages slightly (5-10 points)
+- If the answer is vague or shows lack of clarity, lower percentages slightly
+
+Return only JSON with the same previous structure with updates, without any additional text.` :
+      `أنت محلل أعمال خبير. لديك تحليل سابق لفكرة مشروع، والآن المستخدم أجاب على سؤال تفاعلي.
 
 فكرة المشروع: ${idea}
 
@@ -620,9 +706,12 @@ async function handleInteractiveUpdate(req: Request, params: any) {
       
       // إضافة توصية بناءً على الإجابة
       if (answerQuality === 'good' && analysisData.recommendations) {
+        const newRecommendation = language === 'en' ?
+          `Continue developing the idea based on "${userAnswer.substring(0, 50)}..."` :
+          `متابعة تطوير الفكرة بناءً على "${userAnswer.substring(0, 50)}..."`;
         analysisData.recommendations = [
           ...analysisData.recommendations.slice(0, 2),
-          `متابعة تطوير الفكرة بناءً على "${userAnswer.substring(0, 50)}..."`
+          newRecommendation
         ];
       }
     }
@@ -633,7 +722,7 @@ async function handleInteractiveUpdate(req: Request, params: any) {
       JSON.stringify({ 
         success: true, 
         analysis: analysisData,
-        message: 'تم تحديث التحليل بناءً على إجابتك'
+        message: language === 'en' ? 'Analysis updated based on your answer' : 'تم تحديث التحليل بناءً على إجابتك'
       }),
       { 
         status: 200,
@@ -646,7 +735,7 @@ async function handleInteractiveUpdate(req: Request, params: any) {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'حدث خطأ في تحديث التحليل' 
+        error: language === 'en' ? 'Error occurred while updating analysis' : 'حدث خطأ في تحديث التحليل' 
       }),
       { 
         status: 200,
