@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, Brain, Zap, LogIn, Cpu } from "lucide-react";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, Brain, Zap } from "lucide-react";
+import AnalysisProgress from "./AnalysisProgress";
 
 interface AnalysisResult {
   overall_score: number;
@@ -186,7 +187,16 @@ const BusinessAnalysis = () => {
         </CardContent>
       </Card>
 
-      {analysis && (
+      {isAnalyzing && (
+        <AnalysisProgress 
+          isAnalyzing={isAnalyzing}
+          onComplete={() => {
+            // يمكن إضافة منطق إضافي هنا عند انتهاء التحليل
+          }}
+        />
+      )}
+
+      {analysis && !isAnalyzing && (
         <div className="grid gap-6">
           {/* نتائج التحليل الرئيسية */}
           <div className="grid md:grid-cols-4 gap-4">

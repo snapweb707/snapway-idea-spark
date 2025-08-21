@@ -81,6 +81,8 @@ serve(async (req) => {
 
 استجب باللغة العربية لجميع الحقول النصية. كن شاملاً وقدم رؤى قابلة للتطبيق.`;
 
+    console.log('Starting analysis with model:', modelToUse);
+    
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -99,12 +101,15 @@ serve(async (req) => {
             content: `حلل فكرة المشروع التالية: ${idea}`
           }
         ],
-        temperature: 0.7,
-        max_tokens: 3000,
+        temperature: 0.5,
+        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
+      console.error('OpenRouter API error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
       throw new Error("فشل في الحصول على التحليل من OpenRouter");
     }
 
