@@ -312,6 +312,118 @@ const BusinessAnalysis = () => {
     }
   };
 
+  const downloadMarketingPlanAsPDF = async () => {
+    if (!marketingPlan) return;
+    
+    try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      let yPosition = 20;
+      const pageHeight = 280;
+      const margin = 20;
+      
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
+        if (yPosition > pageHeight) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.setFontSize(fontSize);
+        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+        
+        const lines = pdf.splitTextToSize(text, 170);
+        
+        lines.forEach((line: string) => {
+          if (yPosition > pageHeight) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += fontSize * 0.5;
+        });
+        yPosition += 5;
+      };
+
+      // Title
+      addText('خطة التسويق التفصيلية', 20, true);
+      addText(`تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-SA')}`, 10);
+      yPosition += 10;
+
+      // Strategy
+      if (marketingPlan.strategy) {
+        addText('الاستراتيجية التسويقية:', 14, true);
+        addText(marketingPlan.strategy, 10);
+        yPosition += 5;
+      }
+
+      // Target Audience
+      if (marketingPlan.target_audience) {
+        addText('الجمهور المستهدف:', 14, true);
+        addText(marketingPlan.target_audience, 10);
+        yPosition += 5;
+      }
+
+      // Channels
+      if (marketingPlan.channels && marketingPlan.channels.length > 0) {
+        addText('القنوات التسويقية:', 14, true);
+        marketingPlan.channels.forEach((channel: string, index: number) => {
+          addText(`${index + 1}. ${channel}`, 10);
+        });
+        yPosition += 5;
+      }
+
+      // Budget
+      if (marketingPlan.budget) {
+        addText('الميزانية:', 14, true);
+        addText(marketingPlan.budget, 10);
+        yPosition += 5;
+      }
+
+      // Timeline
+      if (marketingPlan.timeline) {
+        addText('الجدول الزمني:', 14, true);
+        addText(marketingPlan.timeline, 10);
+        yPosition += 5;
+      }
+
+      // KPIs
+      if (marketingPlan.kpis && marketingPlan.kpis.length > 0) {
+        addText('مؤشرات الأداء الرئيسية:', 14, true);
+        marketingPlan.kpis.forEach((kpi: string, index: number) => {
+          addText(`${index + 1}. ${kpi}`, 10);
+        });
+        yPosition += 5;
+      }
+
+      // Action Items
+      if (marketingPlan.action_items && marketingPlan.action_items.length > 0) {
+        addText('الخطوات العملية:', 14, true);
+        marketingPlan.action_items.forEach((item: string, index: number) => {
+          addText(`${index + 1}. ${item}`, 10);
+        });
+      }
+
+      const fileName = `marketing-plan-${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
+      
+      toast({
+        title: "تم التحميل بنجاح",
+        description: "تم تحميل خطة التسويق كملف PDF",
+      });
+    } catch (error) {
+      console.error('Error generating marketing plan PDF:', error);
+      toast({
+        title: "خطأ في التحميل",
+        description: "حدث خطأ أثناء إنشاء ملف PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportToPDF = async () => {
     if (!analysis) return;
 
@@ -1260,6 +1372,13 @@ const BusinessAnalysis = () => {
                     className="flex-1"
                   >
                     {i18n.language === 'ar' ? 'تحديث الخطة' : 'Update Plan'}
+                  </Button>
+                  <Button 
+                    onClick={() => downloadMarketingPlanAsPDF()}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    {i18n.language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
                   </Button>
                 </div>
               </div>

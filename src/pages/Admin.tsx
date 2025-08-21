@@ -10,9 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users, UserPlus, UserMinus, Bell } from "lucide-react";
+import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users, UserPlus, UserMinus, Bell, MessageSquare } from "lucide-react";
 import Header from "@/components/Header";
 import NotificationsManagement from "@/components/admin/NotificationsManagement";
+import { UsersManagement } from "@/components/admin/UsersManagement";
+import { ContactManagement } from "@/components/admin/ContactManagement";
 import { useTranslation } from 'react-i18next';
 
 const Admin = () => {
@@ -760,7 +762,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="ai-settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-9">
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 {t('systemSettings')}
@@ -768,6 +770,14 @@ const Admin = () => {
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="w-4 h-4" />
                 الإشعارات
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                المستخدمين
+              </TabsTrigger>
+              <TabsTrigger value="contact" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                التواصل
               </TabsTrigger>
               <TabsTrigger value="admins" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
@@ -1320,6 +1330,14 @@ const Admin = () => {
 
             <TabsContent value="notifications" className="space-y-6">
               <NotificationsManagement />
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-6">
+              <UsersManagement />
+            </TabsContent>
+
+            <TabsContent value="contact" className="space-y-6">
+              <ContactManagement />
             </TabsContent>
 
             <TabsContent value="models" className="space-y-6">
