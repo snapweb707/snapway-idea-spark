@@ -316,143 +316,202 @@ const BusinessAnalysis = () => {
     if (!marketingPlan) return;
     
     try {
+      // إنشاء عنصر HTML مؤقت للمحتوى
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '800px';
+      tempDiv.style.padding = '40px';
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.fontSize = '14px';
+      tempDiv.style.lineHeight = '1.6';
+      tempDiv.style.direction = 'rtl';
+      tempDiv.style.textAlign = 'right';
+
+      // بناء محتوى HTML
+      let htmlContent = `
+        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+          <h1 style="color: #2563eb; margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">Snapway</h1>
+          <h2 style="margin: 10px 0; font-size: 20px; font-weight: bold;">خطة التسويق التفصيلية</h2>
+          <p style="margin: 5px 0; color: #666; font-size: 12px;">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+      `;
+
+      // إضافة الاستراتيجية التسويقية
+      if (marketingPlan.strategy) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #1e40af; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">الاستراتيجية التسويقية</h3>
+            <p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.strategy)}</p>
+          </div>
+        `;
+      }
+
+      // إضافة الجمهور المستهدف
+      if (marketingPlan.target_audience) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #16a34a; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">الجمهور المستهدف</h3>
+        `;
+        
+        if (typeof marketingPlan.target_audience === 'object') {
+          Object.entries(marketingPlan.target_audience).forEach(([key, value]) => {
+            htmlContent += `<p style="margin: 10px 0; color: #333;"><strong>${key}:</strong> ${String(value)}</p>`;
+          });
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.target_audience)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      // إضافة القنوات التسويقية
+      if (marketingPlan.channels) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #7c3aed; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">القنوات التسويقية</h3>
+        `;
+        
+        if (Array.isArray(marketingPlan.channels)) {
+          htmlContent += `<ul style="margin: 0; padding-right: 20px;">`;
+          marketingPlan.channels.forEach((channel: string) => {
+            htmlContent += `<li style="margin: 8px 0; color: #333;">${String(channel)}</li>`;
+          });
+          htmlContent += `</ul>`;
+        } else if (typeof marketingPlan.channels === 'object') {
+          Object.entries(marketingPlan.channels).forEach(([key, value]) => {
+            htmlContent += `<p style="margin: 10px 0; color: #333;"><strong>${key}:</strong> ${String(value)}</p>`;
+          });
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.channels)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      // إضافة الميزانية
+      if (marketingPlan.budget) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #dc2626; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">الميزانية</h3>
+        `;
+        
+        if (typeof marketingPlan.budget === 'object') {
+          Object.entries(marketingPlan.budget).forEach(([key, value]) => {
+            htmlContent += `<p style="margin: 10px 0; color: #333;"><strong>${key}:</strong> ${String(value)}</p>`;
+          });
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.budget)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      // إضافة الجدول الزمني
+      if (marketingPlan.timeline) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #059669; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">الجدول الزمني</h3>
+        `;
+        
+        if (typeof marketingPlan.timeline === 'object') {
+          Object.entries(marketingPlan.timeline).forEach(([key, value]) => {
+            htmlContent += `<p style="margin: 10px 0; color: #333;"><strong>${key}:</strong> ${String(value)}</p>`;
+          });
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.timeline)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      // إضافة مؤشرات الأداء
+      if (marketingPlan.kpis) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #0369a1; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">مؤشرات الأداء الرئيسية</h3>
+        `;
+        
+        if (Array.isArray(marketingPlan.kpis)) {
+          htmlContent += `<ul style="margin: 0; padding-right: 20px;">`;
+          marketingPlan.kpis.forEach((kpi: string) => {
+            htmlContent += `<li style="margin: 8px 0; color: #333;">${String(kpi)}</li>`;
+          });
+          htmlContent += `</ul>`;
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.kpis)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      // إضافة الخطوات العملية
+      if (marketingPlan.action_items) {
+        htmlContent += `
+          <div style="margin-bottom: 25px;">
+            <h3 style="color: #be185d; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; font-weight: bold; margin-bottom: 15px;">الخطوات العملية</h3>
+        `;
+        
+        if (Array.isArray(marketingPlan.action_items)) {
+          htmlContent += `<ol style="margin: 0; padding-right: 20px;">`;
+          marketingPlan.action_items.forEach((item: string) => {
+            htmlContent += `<li style="margin: 10px 0; color: #333; line-height: 1.6;">${String(item)}</li>`;
+          });
+          htmlContent += `</ol>`;
+        } else {
+          htmlContent += `<p style="margin: 0; color: #333; line-height: 1.8;">${String(marketingPlan.action_items)}</p>`;
+        }
+        
+        htmlContent += `</div>`;
+      }
+
+      tempDiv.innerHTML = htmlContent;
+      document.body.appendChild(tempDiv);
+
+      // استخدام html2canvas لتحويل المحتوى إلى صورة
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      // إنشاء PDF وإضافة الصورة
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      // استخدام الخط الافتراضي مع تحسينات للعربية
-      pdf.setFont('helvetica');
-
-      let yPosition = 20;
-      const pageHeight = 280;
-      const margin = 20;
-      const pageWidth = 170; // عرض الصفحة مع الهوامش
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 210; // A4 width
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      const addText = (text: string, fontSize: number = 12, isBold: boolean = false, isTitle: boolean = false) => {
-        if (yPosition > pageHeight) {
+      let position = 0;
+      const pageHeight = 295; // A4 height
+
+      // إضافة الصفحات حسب الحاجة
+      while (position < imgHeight) {
+        if (position > 0) {
           pdf.addPage();
-          yPosition = 20;
         }
         
-        pdf.setFontSize(fontSize);
-        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+        pdf.addImage(
+          imgData,
+          'PNG',
+          0,
+          -position,
+          imgWidth,
+          imgHeight
+        );
         
-        // تنظيف النص وإزالة أي رموز خاصة
-        let processedText = String(text || '').trim();
-        
-        // تحويل النص العربي للاتين إذا كان يحتوي على رموز خاصة
-        if (!processedText) return;
-        
-        // تقسيم النص لأسطر
-        const lines = pdf.splitTextToSize(processedText, pageWidth);
-        
-        lines.forEach((line: string) => {
-          if (yPosition > pageHeight) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-          
-          let xPosition = margin;
-          if (isTitle) {
-            // للعناوين، محاولة توسيط النص
-            const lineWidth = pdf.getTextWidth(line);
-            xPosition = Math.max(margin, (210 - lineWidth) / 2);
-          }
-          
-          pdf.text(line, xPosition, yPosition);
-          yPosition += fontSize * 0.6;
-        });
-        yPosition += 8;
-      };
-
-      // العنوان الرئيسي
-      addText('Marketing Plan - خطة التسويق', 18, true, true);
-      addText(`Date: ${new Date().toLocaleDateString('en-US')} - التاريخ: ${new Date().toLocaleDateString('ar-SA')}`, 10);
-      yPosition += 10;
-
-      // الاستراتيجية التسويقية
-      if (marketingPlan.strategy) {
-        addText('Marketing Strategy - الاستراتيجية التسويقية:', 14, true);
-        addText(String(marketingPlan.strategy), 11);
+        position += pageHeight;
       }
 
-      // الجمهور المستهدف
-      if (marketingPlan.target_audience) {
-        addText('Target Audience - الجمهور المستهدف:', 14, true);
-        if (typeof marketingPlan.target_audience === 'object') {
-          Object.entries(marketingPlan.target_audience).forEach(([key, value]) => {
-            addText(`${key}: ${String(value)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.target_audience), 11);
-        }
-      }
-
-      // القنوات التسويقية
-      if (marketingPlan.channels) {
-        addText('Marketing Channels - القنوات التسويقية:', 14, true);
-        if (Array.isArray(marketingPlan.channels)) {
-          marketingPlan.channels.forEach((channel: string, index: number) => {
-            addText(`${index + 1}. ${String(channel)}`, 11);
-          });
-        } else if (typeof marketingPlan.channels === 'object') {
-          Object.entries(marketingPlan.channels).forEach(([key, value], index) => {
-            addText(`${index + 1}. ${key}: ${String(value)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.channels), 11);
-        }
-      }
-
-      // الميزانية
-      if (marketingPlan.budget) {
-        addText('Budget - الميزانية:', 14, true);
-        if (typeof marketingPlan.budget === 'object') {
-          Object.entries(marketingPlan.budget).forEach(([key, value]) => {
-            addText(`${key}: ${String(value)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.budget), 11);
-        }
-      }
-
-      // الجدول الزمني
-      if (marketingPlan.timeline) {
-        addText('Timeline - الجدول الزمني:', 14, true);
-        if (typeof marketingPlan.timeline === 'object') {
-          Object.entries(marketingPlan.timeline).forEach(([key, value]) => {
-            addText(`${key}: ${String(value)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.timeline), 11);
-        }
-      }
-
-      // مؤشرات الأداء الرئيسية
-      if (marketingPlan.kpis) {
-        addText('KPIs - مؤشرات الأداء:', 14, true);
-        if (Array.isArray(marketingPlan.kpis)) {
-          marketingPlan.kpis.forEach((kpi: string, index: number) => {
-            addText(`${index + 1}. ${String(kpi)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.kpis), 11);
-        }
-      }
-
-      // الخطوات العملية
-      if (marketingPlan.action_items) {
-        addText('Action Items - الخطوات العملية:', 14, true);
-        if (Array.isArray(marketingPlan.action_items)) {
-          marketingPlan.action_items.forEach((item: string, index: number) => {
-            addText(`${index + 1}. ${String(item)}`, 11);
-          });
-        } else {
-          addText(String(marketingPlan.action_items), 11);
-        }
-      }
+      // إزالة العنصر المؤقت
+      document.body.removeChild(tempDiv);
 
       const fileName = `marketing-plan-${new Date().toISOString().slice(0, 10)}.pdf`;
       pdf.save(fileName);
