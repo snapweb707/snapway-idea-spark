@@ -322,98 +322,140 @@ const BusinessAnalysis = () => {
         format: 'a4'
       });
 
-      // إضافة الخط العربي
-      pdf.addFont('https://fonts.gstatic.com/s/notoarabic/v18/Hgo13k-tfSpn0qi1SFdUfVtXRcuvYFyGmcM.ttf', 'NotoArabic', 'normal');
-      pdf.setFont('NotoArabic');
+      // تعيين الخط الافتراضي
+      pdf.setFont('helvetica');
 
       let yPosition = 20;
       const pageHeight = 280;
       const margin = 20;
+      const pageWidth = 190; // A4 width - margins
       
-      const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false, isTitle: boolean = false) => {
         if (yPosition > pageHeight) {
           pdf.addPage();
           yPosition = 20;
         }
         
         pdf.setFontSize(fontSize);
-        pdf.setFont('NotoArabic', isBold ? 'bold' : 'normal');
+        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
         
-        // تحويل النص للاتجاه الصحيح
-        const processedText = text.split('\n').reverse().join('\n');
-        const lines = pdf.splitTextToSize(processedText, 170);
+        // معالجة النص للتأكد من أنه نص صحيح
+        const processedText = String(text || '').trim();
+        if (!processedText) return;
         
-        lines.forEach((line: string) => {
+        const lines = pdf.splitTextToSize(processedText, pageWidth - 20);
+        
+        lines.forEach((line: string, index: number) => {
           if (yPosition > pageHeight) {
             pdf.addPage();
             yPosition = 20;
           }
-          // محاذاة النص للجهة اليمنى للعربية
-          const lineWidth = pdf.getTextWidth(line);
-          const xPosition = 210 - margin - lineWidth; // A4 width - margin - text width
+          
+          let xPosition = margin;
+          if (isTitle || isBold) {
+            // للعناوين، توسيط النص
+            const lineWidth = pdf.getTextWidth(line);
+            xPosition = (210 - lineWidth) / 2;
+          }
+          
           pdf.text(line, xPosition, yPosition);
-          yPosition += fontSize * 0.5;
+          yPosition += fontSize * 0.6;
         });
         yPosition += 5;
       };
 
-      // Title
-      addText('خطة التسويق التفصيلية', 20, true);
+      // العنوان الرئيسي
+      addText('خطة التسويق التفصيلية', 20, true, true);
       addText(`تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-SA')}`, 10);
       yPosition += 10;
 
-      // Strategy
+      // الاستراتيجية التسويقية
       if (marketingPlan.strategy) {
         addText('الاستراتيجية التسويقية:', 14, true);
-        addText(marketingPlan.strategy, 10);
+        addText(String(marketingPlan.strategy), 10);
         yPosition += 5;
       }
 
-      // Target Audience
+      // الجمهور المستهدف
       if (marketingPlan.target_audience) {
         addText('الجمهور المستهدف:', 14, true);
-        addText(marketingPlan.target_audience, 10);
+        if (typeof marketingPlan.target_audience === 'object') {
+          // معالجة الكائن
+          Object.entries(marketingPlan.target_audience).forEach(([key, value]) => {
+            addText(`${key}: ${String(value)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.target_audience), 10);
+        }
         yPosition += 5;
       }
 
-      // Channels
-      if (marketingPlan.channels && marketingPlan.channels.length > 0) {
+      // القنوات التسويقية
+      if (marketingPlan.channels) {
         addText('القنوات التسويقية:', 14, true);
-        marketingPlan.channels.forEach((channel: string, index: number) => {
-          addText(`${index + 1}. ${channel}`, 10);
-        });
+        if (Array.isArray(marketingPlan.channels)) {
+          marketingPlan.channels.forEach((channel: string, index: number) => {
+            addText(`${index + 1}. ${String(channel)}`, 10);
+          });
+        } else if (typeof marketingPlan.channels === 'object') {
+          Object.entries(marketingPlan.channels).forEach(([key, value], index) => {
+            addText(`${index + 1}. ${key}: ${String(value)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.channels), 10);
+        }
         yPosition += 5;
       }
 
-      // Budget
+      // الميزانية
       if (marketingPlan.budget) {
         addText('الميزانية:', 14, true);
-        addText(marketingPlan.budget, 10);
+        if (typeof marketingPlan.budget === 'object') {
+          Object.entries(marketingPlan.budget).forEach(([key, value]) => {
+            addText(`${key}: ${String(value)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.budget), 10);
+        }
         yPosition += 5;
       }
 
-      // Timeline
+      // الجدول الزمني
       if (marketingPlan.timeline) {
         addText('الجدول الزمني:', 14, true);
-        addText(marketingPlan.timeline, 10);
+        if (typeof marketingPlan.timeline === 'object') {
+          Object.entries(marketingPlan.timeline).forEach(([key, value]) => {
+            addText(`${key}: ${String(value)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.timeline), 10);
+        }
         yPosition += 5;
       }
 
-      // KPIs
-      if (marketingPlan.kpis && marketingPlan.kpis.length > 0) {
+      // مؤشرات الأداء الرئيسية
+      if (marketingPlan.kpis) {
         addText('مؤشرات الأداء الرئيسية:', 14, true);
-        marketingPlan.kpis.forEach((kpi: string, index: number) => {
-          addText(`${index + 1}. ${kpi}`, 10);
-        });
+        if (Array.isArray(marketingPlan.kpis)) {
+          marketingPlan.kpis.forEach((kpi: string, index: number) => {
+            addText(`${index + 1}. ${String(kpi)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.kpis), 10);
+        }
         yPosition += 5;
       }
 
-      // Action Items
-      if (marketingPlan.action_items && marketingPlan.action_items.length > 0) {
+      // الخطوات العملية
+      if (marketingPlan.action_items) {
         addText('الخطوات العملية:', 14, true);
-        marketingPlan.action_items.forEach((item: string, index: number) => {
-          addText(`${index + 1}. ${item}`, 10);
-        });
+        if (Array.isArray(marketingPlan.action_items)) {
+          marketingPlan.action_items.forEach((item: string, index: number) => {
+            addText(`${index + 1}. ${String(item)}`, 10);
+          });
+        } else {
+          addText(String(marketingPlan.action_items), 10);
+        }
       }
 
       const fileName = `marketing-plan-${new Date().toISOString().slice(0, 10)}.pdf`;
