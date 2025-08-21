@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn } from "lucide-react";
+import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, MessageSquare, Calendar, Lightbulb } from "lucide-react";
 import AnalysisProgress from "./AnalysisProgress";
 
 interface AnalysisResult {
@@ -23,6 +23,23 @@ interface AnalysisResult {
   target_audience: string;
   revenue_model: string;
   competitive_advantage: string;
+  financial_analysis?: {
+    startup_cost: string;
+    monthly_expenses: string;
+    break_even_time: string;
+    roi_projection: string;
+  };
+  competitive_analysis?: {
+    main_competitors: string[];
+    market_differentiation: string;
+    barrier_to_entry: string;
+  };
+  interactive_questions?: string[];
+  action_plan?: {
+    immediate_steps: string[];
+    short_term_goals: string[];
+    long_term_vision: string;
+  };
 }
 
 const BusinessAnalysis = () => {
@@ -339,6 +356,145 @@ const BusinessAnalysis = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* التحليل المالي للتحليل العميق */}
+          {analysis.financial_analysis && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    التحليل المالي
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">تكلفة البدء</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.financial_analysis.startup_cost}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">المصروفات الشهرية</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.financial_analysis.monthly_expenses}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">فترة التعادل</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.financial_analysis.break_even_time}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">العائد المتوقع</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.financial_analysis.roi_projection}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-primary" />
+                    تحليل المنافسة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-2">المنافسون الرئيسيون</h4>
+                    <ul className="space-y-1">
+                      {analysis.competitive_analysis?.main_competitors.map((competitor, index) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          {competitor}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">التميز في السوق</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.competitive_analysis?.market_differentiation}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">حواجز الدخول</h4>
+                    <p className="text-sm text-muted-foreground">{analysis.competitive_analysis?.barrier_to_entry}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* الأسئلة التفاعلية */}
+          {analysis.interactive_questions && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  أسئلة لتطوير فكرتك
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {analysis.interactive_questions.map((question, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
+                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-medium mt-0.5">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm flex-1 font-medium">{question}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* خطة العمل */}
+          {analysis.action_plan && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  خطة العمل
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-yellow-600" />
+                    خطوات فورية
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.action_plan.immediate_steps.map((step, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0" />
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-blue-600" />
+                    أهداف قصيرة المدى
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.action_plan.short_term_goals.map((goal, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                        {goal}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    الرؤية طويلة المدى
+                  </h4>
+                  <p className="text-sm text-muted-foreground p-3 bg-green-50 rounded-lg border border-green-200">
+                    {analysis.action_plan.long_term_vision}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* التوصيات */}
           <Card>

@@ -49,24 +49,73 @@ serve(async (req) => {
     const modelToUse = modelData?.setting_value || "openai/gpt-4o-mini";
 
     // Configure analysis based on type
+
     let systemPrompt = "";
+    let jsonFormat = "";
 
     switch (analysisType) {
       case 'interactive':
-        systemPrompt = `أنت محلل أعمال تفاعلي خبير. قم بتحليل فكرة المشروع التجاري وقدم تحليلاً تفاعلياً يتضمن أسئلة إضافية وتوصيات قابلة للتطبيق. استجب بصيغة JSON منظمة.`;
+        systemPrompt = `أنت محلل أعمال تفاعلي خبير. قم بتحليل فكرة المشروع التجاري وقدم تحليلاً تفاعلياً يتضمن أسئلة بسيطة وواضحة لمساعدة المستخدم على تطوير فكرته. ركز على الجوانب العملية والخطوات القابلة للتنفيذ.`;
+        jsonFormat = `{
+  "overall_score": [رقم من 0 إلى 100],
+  "market_potential": [رقم من 0 إلى 100], 
+  "feasibility": [رقم من 0 إلى 100],
+  "risk_level": [رقم من 0 إلى 100],
+  "strengths": ["نقطة قوة 1", "نقطة قوة 2", "نقطة قوة 3"],
+  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2"],
+  "recommendations": ["توصية 1", "توصية 2", "توصية 3"],
+  "market_size": "وصف مفصل لحجم السوق",
+  "target_audience": "وصف مفصل للجمهور المستهدف",
+  "revenue_model": "نموذج الإيرادات المقترح",
+  "competitive_advantage": "المزايا التنافسية المحتملة",
+  "interactive_questions": [
+    "سؤال بسيط ومباشر حول التنفيذ",
+    "سؤال عن الجمهور المستهدف",
+    "سؤال عن التمويل المطلوب",
+    "سؤال عن الخطوات التالية"
+  ],
+  "action_plan": {
+    "immediate_steps": ["خطوة فورية 1", "خطوة فورية 2"],
+    "short_term_goals": ["هدف قصير المدى 1", "هدف قصير المدى 2"],
+    "long_term_vision": "رؤية طويلة المدى للمشروع"
+  }
+}`;
         break;
       case 'deep':
-        systemPrompt = `أنت محلل أعمال متقدم ومتخصص. قم بإجراء تحليل عميق ومفصل لفكرة المشروع التجاري يشمل تحليل السوق المتقدم، دراسة المنافسين، النمذجة المالية، وتحليل المخاطر التفصيلي. استجب بصيغة JSON منظمة.`;
+        systemPrompt = `أنت محلل أعمال متقدم ومتخصص. قم بإجراء تحليل عميق ومفصل لفكرة المشروع التجاري يشمل تحليل السوق المتقدم، دراسة المنافسين، النمذجة المالية المفصلة، وتحليل المخاطر التفصيلي.`;
+        jsonFormat = `{
+  "overall_score": [رقم من 0 إلى 100],
+  "market_potential": [رقم من 0 إلى 100], 
+  "feasibility": [رقم من 0 إلى 100],
+  "risk_level": [رقم من 0 إلى 100],
+  "strengths": ["نقطة قوة 1", "نقطة قوة 2", "نقطة قوة 3", "نقطة قوة 4"],
+  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2", "نقطة ضعف 3"],
+  "recommendations": ["توصية 1", "توصية 2", "توصية 3", "توصية 4"],
+  "market_size": "تحليل مفصل جداً لحجم السوق مع أرقام وإحصائيات",
+  "target_audience": "تحليل شامل للجمهور المستهدف مع التقسيمات",
+  "revenue_model": "نموذج إيرادات مفصل مع توقعات رقمية",
+  "competitive_advantage": "تحليل تفصيلي للمزايا التنافسية",
+  "financial_analysis": {
+    "startup_cost": "تحليل مفصل للتكاليف الأولية",
+    "monthly_expenses": "تقدير التكاليف الشهرية",
+    "break_even_time": "تقدير فترة الوصول لنقطة التعادل",
+    "roi_projection": "توقع العائد على الاستثمار"
+  },
+  "competitive_analysis": {
+    "main_competitors": ["منافس 1", "منافس 2", "منافس 3"],
+    "market_differentiation": "كيفية التميز في السوق",
+    "barrier_to_entry": "تحديات دخول السوق"
+  },
+  "action_plan": {
+    "immediate_steps": ["خطوة فورية 1", "خطوة فورية 2", "خطوة فورية 3"],
+    "short_term_goals": ["هدف قصير المدى 1", "هدف قصير المدى 2"],
+    "long_term_vision": "رؤية استراتيجية طويلة المدى"
+  }
+}`;
         break;
       default:
-        systemPrompt = `أنت محلل أعمال خبير. قم بتحليل فكرة المشروع التجاري وقدم تقييماً شاملاً وسريعاً. استجب بصيغة JSON منظمة.`;
-    }
-
-    const fullPrompt = `${systemPrompt}
-
-قم بتحليل فكرة المشروع وإرجاع النتائج بصيغة JSON صحيحة فقط. استخدم هذا التنسيق بالضبط:
-
-{
+        systemPrompt = `أنت محلل أعمال خبير. قم بتحليل فكرة المشروع التجاري وقدم تقييماً شاملاً وسريعاً مع توصيات عملية.`;
+        jsonFormat = `{
   "overall_score": [رقم من 0 إلى 100],
   "market_potential": [رقم من 0 إلى 100], 
   "feasibility": [رقم من 0 إلى 100],
@@ -78,9 +127,21 @@ serve(async (req) => {
   "target_audience": "وصف مفصل للجمهور المستهدف",
   "revenue_model": "نموذج الإيرادات المقترح",
   "competitive_advantage": "المزايا التنافسية المحتملة"
-}
+}`;
+    }
 
-لا تضيف أي نص قبل أو بعد JSON. أرجع JSON فقط.`;
+    const fullPrompt = `${systemPrompt}
+
+قم بتحليل فكرة المشروع وإرجاع النتائج بصيغة JSON صحيحة فقط. استخدم هذا التنسيق بالضبط:
+
+${jsonFormat}
+
+تعليمات مهمة:
+- أجعل كل الأسئلة التفاعلية بسيطة ومباشرة
+- ركز على الجوانب العملية والقابلة للتنفيذ
+- استخدم اللغة العربية البسيطة والواضحة
+- لا تضيف أي نص قبل أو بعد JSON
+- أرجع JSON فقط`;
 
     console.log('Starting analysis with model:', modelToUse);
     
@@ -148,11 +209,21 @@ serve(async (req) => {
         throw new Error(`التحليل لا يحتوي على البيانات المطلوبة: ${missingFields.join(', ')}`);
       }
       
+      // Add fallback analysis for interactive questions if missing
+      if (analysisType === 'interactive' && !analysis.interactive_questions) {
+        analysis.interactive_questions = [
+          "ما هو الهدف الرئيسي من مشروعك؟",
+          "من هم عملاؤك المحتملون؟",
+          "كم رأس المال المطلوب للبدء؟",
+          "ما هي خطوتك الأولى للتنفيذ؟"
+        ];
+      }
+      
     } catch (parseError) {
       console.error('JSON parsing failed:', parseError);
       console.log('Failed to parse text:', analysisText);
       
-      // Create a basic analysis as fallback
+      // Create a basic analysis as fallback with interactive questions
       analysis = {
         overall_score: 75,
         market_potential: 70,
@@ -171,6 +242,33 @@ serve(async (req) => {
         revenue_model: "نموذج اشتراك أو مبيعات مباشرة",
         competitive_advantage: "خدمة مبتكرة تلبي احتياج السوق"
       };
+      
+      // Add type-specific fallback data
+      if (analysisType === 'interactive') {
+        analysis.interactive_questions = [
+          "ما هو الهدف الرئيسي من مشروعك؟",
+          "من هم عملاؤك المحتملون؟",
+          "كم رأس المال المطلوب للبدء؟",
+          "ما هي خطوتك الأولى للتنفيذ؟"
+        ];
+        analysis.action_plan = {
+          immediate_steps: ["تحديد الفكرة بوضوح", "إجراء بحث أولي"],
+          short_term_goals: ["تطوير نموذج أولي", "اختبار السوق"],
+          long_term_vision: "بناء مشروع مستدام ومربح"
+        };
+      } else if (analysisType === 'deep') {
+        analysis.financial_analysis = {
+          startup_cost: "يحتاج تقدير مفصل حسب نوع المشروع",
+          monthly_expenses: "تقدير التكاليف الشهرية مطلوب",
+          break_even_time: "6-12 شهر تقريباً",
+          roi_projection: "عائد متوقع بناءً على أداء السوق"
+        };
+        analysis.competitive_analysis = {
+          main_competitors: ["منافس رئيسي 1", "منافس رئيسي 2"],
+          market_differentiation: "تحديد نقاط التميز المطلوبة",
+          barrier_to_entry: "حواجز دخول متوسطة"
+        };
+      }
       
       console.log('Using fallback analysis:', analysis);
     }
