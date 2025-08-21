@@ -64,12 +64,13 @@ const BusinessAnalysis = () => {
         }
       });
 
-      if (error) {
-        console.error('Edge function error:', error);
-        throw error;
+      console.log('Edge function response:', data);
+      
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      if (data && data.analysis) {
+      if (data && data.analysis && data.success) {
         console.log('Analysis received:', data.analysis);
         setAnalysis(data.analysis);
         toast({

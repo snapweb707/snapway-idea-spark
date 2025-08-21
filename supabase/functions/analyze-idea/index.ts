@@ -64,22 +64,23 @@ serve(async (req) => {
 
     const fullPrompt = `${systemPrompt}
 
-استجب بصيغة JSON بالتنسيق التالي:
+قم بتحليل فكرة المشروع وإرجاع النتائج بصيغة JSON صحيحة فقط. استخدم هذا التنسيق بالضبط:
+
 {
-  "overall_score": number (0-100),
-  "market_potential": number (0-100), 
-  "feasibility": number (0-100),
-  "risk_level": number (0-100),
-  "strengths": ["نقطة قوة 1", "نقطة قوة 2", ...],
-  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2", ...],
-  "recommendations": ["توصية 1", "توصية 2", ...],
-  "market_size": "وصف حجم السوق",
-  "target_audience": "وصف الجمهور المستهدف",
+  "overall_score": [رقم من 0 إلى 100],
+  "market_potential": [رقم من 0 إلى 100], 
+  "feasibility": [رقم من 0 إلى 100],
+  "risk_level": [رقم من 0 إلى 100],
+  "strengths": ["نقطة قوة 1", "نقطة قوة 2", "نقطة قوة 3"],
+  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2"],
+  "recommendations": ["توصية 1", "توصية 2", "توصية 3"],
+  "market_size": "وصف مفصل لحجم السوق",
+  "target_audience": "وصف مفصل للجمهور المستهدف",
   "revenue_model": "نموذج الإيرادات المقترح",
   "competitive_advantage": "المزايا التنافسية المحتملة"
 }
 
-استجب باللغة العربية لجميع الحقول النصية. كن شاملاً وقدم رؤى قابلة للتطبيق.`;
+لا تضيف أي نص قبل أو بعد JSON. أرجع JSON فقط.`;
 
     console.log('Starting analysis with model:', modelToUse);
     
@@ -175,28 +176,43 @@ serve(async (req) => {
     }
 
     // Save the analysis to database
-    const { error: insertError } = await supabase
-      .from('project_ideas')
-      .insert({
-        idea_text: idea,
-        analysis_result: analysis,
-        user_id: userId,
-        status: 'completed'
-      });
+    try {
+      const { error: insertError } = await supabase
+        .from('project_ideas')
+        .insert({
+          idea_text: idea,
+          analysis_result: analysis,
+          user_id: userId,
+          status: 'completed'
+        });
 
-    if (insertError) {
-      console.error('Error saving analysis:', insertError);
+      if (insertError) {
+        console.error('Error saving analysis:', insertError);
+        // Don't throw error here, just log it
+      }
+    } catch (dbError) {
+      console.error('Database save error:', dbError);
+      // Continue even if DB save fails
     }
 
-    return new Response(JSON.stringify({ analysis }), {
+    return new Response(JSON.stringify({ 
+      analysis,
+      success: true 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     });
   } catch (error) {
     console.error('Error in analyze-idea function:', error);
+    
+    // Return a meaningful error response
+    const errorMessage = error instanceof Error ? error.message : 'حدث خطأ غير متوقع';
+    
     return new Response(JSON.stringify({ 
-      error: error.message || 'حدث خطأ غير متوقع' 
+      error: errorMessage,
+      success: false 
     }), {
-      status: 500,
+      status: 200, // Return 200 to avoid function error
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
