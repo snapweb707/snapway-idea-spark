@@ -1307,20 +1307,33 @@ const BusinessAnalysis = () => {
                 )}
 
                 {/* Marketing Channels */}
-                {marketingPlan.channels && marketingPlan.channels.length > 0 && (
+                {marketingPlan.channels && (
                   <div className="bg-background/50 rounded-xl p-6 border border-border/50">
                     <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                       <MessageSquare className="w-5 h-5 text-purple-600" />
                       {i18n.language === 'ar' ? 'قنوات التسويق' : 'Marketing Channels'}
                     </h4>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {marketingPlan.channels.map((channel: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">{channel}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {Array.isArray(marketingPlan.channels) ? (
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {marketingPlan.channels.map((channel: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-sm">{channel}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : typeof marketingPlan.channels === 'object' ? (
+                      <div className="space-y-3">
+                        {Object.entries(marketingPlan.channels).map(([key, value], index) => (
+                          <div key={index}>
+                            <h5 className="font-medium text-sm mb-2 capitalize">{key.replace(/_/g, ' ')}</h5>
+                            <p className="text-muted-foreground text-sm">{String(value)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">{String(marketingPlan.channels)}</p>
+                    )}
                   </div>
                 )}
 
@@ -1387,40 +1400,48 @@ const BusinessAnalysis = () => {
                 )}
 
                 {/* KPIs */}
-                {marketingPlan.kpis && marketingPlan.kpis.length > 0 && (
+                {marketingPlan.kpis && (
                   <div className="bg-background/50 rounded-xl p-6 border border-border/50">
                     <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                       <BarChart3 className="w-5 h-5 text-orange-600" />
                       {i18n.language === 'ar' ? 'مؤشرات الأداء الرئيسية' : 'Key Performance Indicators'}
                     </h4>
-                    <div className="space-y-2">
-                      {marketingPlan.kpis.map((kpi: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-                          <span className="text-sm text-muted-foreground">{kpi}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {Array.isArray(marketingPlan.kpis) ? (
+                      <div className="space-y-2">
+                        {marketingPlan.kpis.map((kpi: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                            <span className="text-sm text-muted-foreground">{kpi}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">{String(marketingPlan.kpis)}</p>
+                    )}
                   </div>
                 )}
 
                 {/* Action Items */}
-                {marketingPlan.action_items && marketingPlan.action_items.length > 0 && (
+                {marketingPlan.action_items && (
                   <div className="bg-background/50 rounded-xl p-6 border border-border/50">
                     <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-emerald-600" />
                       {i18n.language === 'ar' ? 'الخطوات العملية' : 'Action Items'}
                     </h4>
-                    <div className="space-y-3">
-                      {marketingPlan.action_items.map((item: string, index: number) => (
-                        <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                          <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
-                            {index + 1}
-                          </span>
-                          <span className="text-sm">{item}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {Array.isArray(marketingPlan.action_items) ? (
+                      <div className="space-y-3">
+                        {marketingPlan.action_items.map((item: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
+                              {index + 1}
+                            </span>
+                            <span className="text-sm">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">{String(marketingPlan.action_items)}</p>
+                    )}
                   </div>
                 )}
 
