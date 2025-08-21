@@ -1285,7 +1285,24 @@ const BusinessAnalysis = () => {
                       <Users className="w-5 h-5 text-green-600" />
                       {i18n.language === 'ar' ? 'الجمهور المستهدف' : 'Target Audience'}
                     </h4>
-                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.target_audience}</p>
+                    {typeof marketingPlan.target_audience === 'string' ? (
+                      <p className="text-muted-foreground leading-relaxed">{marketingPlan.target_audience}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {marketingPlan.target_audience.demographic_segments && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'الشرائح الديموغرافية' : 'Demographic Segments'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.target_audience.demographic_segments}</p>
+                          </div>
+                        )}
+                        {marketingPlan.target_audience.behavioral_segments && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'الشرائح السلوكية' : 'Behavioral Segments'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.target_audience.behavioral_segments}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1314,7 +1331,24 @@ const BusinessAnalysis = () => {
                       <DollarSign className="w-5 h-5 text-yellow-600" />
                       {i18n.language === 'ar' ? 'خطة الميزانية' : 'Budget Plan'}
                     </h4>
-                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.budget}</p>
+                    {typeof marketingPlan.budget === 'string' ? (
+                      <p className="text-muted-foreground leading-relaxed">{marketingPlan.budget}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {marketingPlan.budget.total_budget && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'إجمالي الميزانية' : 'Total Budget'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.budget.total_budget}</p>
+                          </div>
+                        )}
+                        {marketingPlan.budget.breakdown && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'تفصيل الميزانية' : 'Budget Breakdown'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.budget.breakdown}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1325,7 +1359,30 @@ const BusinessAnalysis = () => {
                       <Calendar className="w-5 h-5 text-indigo-600" />
                       {i18n.language === 'ar' ? 'الجدول الزمني' : 'Timeline'}
                     </h4>
-                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.timeline}</p>
+                    {typeof marketingPlan.timeline === 'string' ? (
+                      <p className="text-muted-foreground leading-relaxed">{marketingPlan.timeline}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {marketingPlan.timeline.phase_1 && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'المرحلة الأولى' : 'Phase 1'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.timeline.phase_1}</p>
+                          </div>
+                        )}
+                        {marketingPlan.timeline.phase_2 && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'المرحلة الثانية' : 'Phase 2'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.timeline.phase_2}</p>
+                          </div>
+                        )}
+                        {marketingPlan.timeline.phase_3 && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">{i18n.language === 'ar' ? 'المرحلة الثالثة' : 'Phase 3'}</h5>
+                            <p className="text-muted-foreground text-sm">{marketingPlan.timeline.phase_3}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
