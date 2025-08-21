@@ -47,6 +47,11 @@ const BusinessAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [analysisType, setAnalysisType] = useState<string>("basic");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [isInteractiveMode, setIsInteractiveMode] = useState(false);
+  const [isUpdatingAnalysis, setIsUpdatingAnalysis] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -72,7 +77,6 @@ const BusinessAnalysis = () => {
     setIsAnalyzing(true);
 
     try {
-      // استخدام edge function
       const { data, error } = await supabase.functions.invoke('analyze-idea', {
         body: {
           idea,
@@ -90,6 +94,14 @@ const BusinessAnalysis = () => {
       if (data && data.analysis && data.success) {
         console.log('Analysis received:', data.analysis);
         setAnalysis(data.analysis);
+        
+        // إذا كان التحليل تفاعلي، ابدأ الوضع التفاعلي
+        if (analysisType === 'interactive' && data.analysis.interactive_questions?.length > 0) {
+          setIsInteractiveMode(true);
+          setCurrentQuestionIndex(0);
+          setUserAnswers([]);
+        }
+        
         toast({
           title: "تم التحليل بنجاح",
           description: "تم إجراء التحليل بنجاح وإنشاء التوصيات",
@@ -107,6 +119,60 @@ const BusinessAnalysis = () => {
       });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const submitAnswer = async () => {
+    if (!currentAnswer.trim()) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال إجابة على السؤال",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingAnalysis(true);
+    const newAnswers = [...userAnswers, currentAnswer];
+    setUserAnswers(newAnswers);
+
+    try {
+      const { data } = await supabase.functions.invoke('analyze-idea', {
+        body: {
+          idea,
+          analysisType: 'interactive_update',
+          userId: user.id,
+          currentQuestion: analysis?.interactive_questions?.[currentQuestionIndex],
+          userAnswer: currentAnswer,
+          allAnswers: newAnswers,
+          previousAnalysis: analysis
+        }
+      });
+
+      if (data && data.analysis && data.success) {
+        setAnalysis(data.analysis);
+        
+        // انتقل للسؤال التالي أو أنه التفاعل
+        if (currentQuestionIndex < (analysis?.interactive_questions?.length || 0) - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setCurrentAnswer("");
+        } else {
+          setIsInteractiveMode(false);
+          toast({
+            title: "تم التحديث",
+            description: "تم تحديث التحليل بناءً على إجاباتك",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      toast({
+        title: "خطأ في التحديث",
+        description: "حدث خطأ أثناء تحديث التحليل",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingAnalysis(false);
     }
   };
 
@@ -420,7 +486,7 @@ const BusinessAnalysis = () => {
           )}
 
           {/* الأسئلة التفاعلية */}
-          {analysis.interactive_questions && (
+          {analysis.interactive_questions && !isInteractiveMode && (
             <Card className="border-primary/20 bg-primary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -436,9 +502,97 @@ const BusinessAnalysis = () => {
                         {index + 1}
                       </div>
                       <p className="text-sm flex-1 font-medium">{question}</p>
+                      {userAnswers[index] && (
+                        <div className="text-xs text-muted-foreground bg-green-50 px-2 py-1 rounded">
+                          تم الرد
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
+                {analysisType === 'interactive' && (
+                  <Button
+                    onClick={() => {
+                      setIsInteractiveMode(true);
+                      setCurrentQuestionIndex(0);
+                    }}
+                    className="w-full mt-4"
+                    variant="outline"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    ابدأ الإجابة على الأسئلة
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* واجهة الأسئلة التفاعلية */}
+          {isInteractiveMode && analysis?.interactive_questions && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    السؤال {currentQuestionIndex + 1} من {analysis.interactive_questions.length}
+                  </div>
+                  <Badge variant="secondary">
+                    {Math.round(((currentQuestionIndex + 1) / analysis.interactive_questions.length) * 100)}%
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-background rounded-lg border">
+                  <p className="font-medium text-lg mb-2">
+                    {analysis.interactive_questions[currentQuestionIndex]}
+                  </p>
+                </div>
+                
+                <Textarea
+                  placeholder="اكتب إجابتك هنا بالتفصيل..."
+                  value={currentAnswer}
+                  onChange={(e) => setCurrentAnswer(e.target.value)}
+                  className="min-h-[100px] resize-none"
+                  dir="rtl"
+                />
+                
+                <div className="flex gap-2">
+                  <Button
+                    onClick={submitAnswer}
+                    disabled={isUpdatingAnalysis || !currentAnswer.trim()}
+                    className="flex-1"
+                  >
+                    {isUpdatingAnalysis ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        جاري التحديث...
+                      </>
+                    ) : currentQuestionIndex < analysis.interactive_questions.length - 1 ? (
+                      'التالي'
+                    ) : (
+                      'إنهاء التحليل'
+                    )}
+                  </Button>
+                  
+                  {currentQuestionIndex > 0 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentQuestionIndex(currentQuestionIndex - 1);
+                        setCurrentAnswer(userAnswers[currentQuestionIndex - 1] || "");
+                      }}
+                      disabled={isUpdatingAnalysis}
+                    >
+                      السابق
+                    </Button>
+                  )}
+                </div>
+                
+                {userAnswers.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    تم الإجابة على {userAnswers.length} من {analysis.interactive_questions.length} أسئلة
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
