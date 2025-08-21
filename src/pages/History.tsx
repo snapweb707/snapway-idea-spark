@@ -329,8 +329,6 @@ const History = () => {
   const downloadAnalysisAsPDF = async (analysis: AnalysisRecord) => {
     setDownloadingPdf(true);
     try {
-      // Generate comprehensive PDF content
-      const isArabic = analysis.language === 'ar';
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -339,25 +337,26 @@ const History = () => {
 
       let yPosition = 20;
       const pageHeight = 280;
-      const rightMargin = 200;
-      const leftMargin = 10;
+      const margin = 20;
       
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
         if (yPosition > pageHeight) {
           pdf.addPage();
           yPosition = 20;
         }
-        pdf.setFontSize(fontSize);
-        if (isBold) pdf.setFont(undefined, 'bold');
-        else pdf.setFont(undefined, 'normal');
         
-        const lines = pdf.splitTextToSize(text, 180);
+        pdf.setFontSize(fontSize);
+        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+        
+        // Split text into lines that fit the page width
+        const lines = pdf.splitTextToSize(text, 170);
+        
         lines.forEach((line: string) => {
           if (yPosition > pageHeight) {
             pdf.addPage();
             yPosition = 20;
           }
-          pdf.text(line, isArabic ? rightMargin : leftMargin, yPosition);
+          pdf.text(line, margin, yPosition);
           yPosition += fontSize * 0.5;
         });
         yPosition += 5;
@@ -491,8 +490,8 @@ const History = () => {
       pdf.save(fileName);
       
       toast({
-        title: isArabic ? "تم التحميل بنجاح" : "Downloaded Successfully",
-        description: isArabic ? "تم تحميل التحليل كملف PDF" : "Analysis downloaded as PDF",
+        title: "تم التحميل بنجاح",
+        description: "تم تحميل التحليل كملف PDF",
       });
     } catch (error) {
       console.error('Error generating PDF:', error);

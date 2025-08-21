@@ -106,57 +106,6 @@ const Admin = () => {
   };
 
 
-  const toggleNotificationStatus = async (notificationId: string, isActive: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_active: !isActive })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم بنجاح",
-        description: `تم ${!isActive ? 'تفعيل' : 'إلغاء تفعيل'} الإشعار`
-      });
-
-      fetchNotifications();
-    } catch (error) {
-      console.error('Error updating notification:', error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث الإشعار",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const deleteNotification = async (notificationId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم بنجاح",
-        description: "تم حذف الإشعار بنجاح"
-      });
-
-      fetchNotifications();
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في حذف الإشعار",
-        variant: "destructive"
-      });
-    }
-  };
 
   const saveSelectedModel = async () => {
     if (!selectedModel) {
@@ -811,10 +760,14 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="ai-settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 {t('systemSettings')}
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                الإشعارات
               </TabsTrigger>
               <TabsTrigger value="admins" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
@@ -1363,6 +1316,10 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="notifications" className="space-y-6">
+              <NotificationsManagement />
             </TabsContent>
 
             <TabsContent value="models" className="space-y-6">
