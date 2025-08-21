@@ -2,153 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 
-// AI Chat handler function
-async function handleAIChat(req: Request, params: any) {
-  const { message, userId, language } = params;
-  
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  };
-
-  try {
-    // Get OpenRouter API key from settings
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: settingData } = await supabase
-      .from('admin_settings')
-      .select('setting_value')
-      .eq('setting_key', 'openrouter_api_key')
-      .single();
-
-    if (!settingData?.setting_value) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'لم يتم تكوين OpenRouter API Key' 
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    const openRouterKey = settingData.setting_value;
-
-    // Get selected model from admin settings
-    const { data: modelData } = await supabase
-      .from('admin_settings')
-      .select('setting_value')
-      .eq('setting_key', 'selected_ai_model')
-      .single();
-
-    const modelToUse = modelData?.setting_value || "openai/gpt-4o-mini";
-
-    const systemPrompt = `أنت مساعد ذكي متطور في منصة Snapway. تساعد المستخدمين في:
-
-- تحليل الأفكار التجارية وتقييمها
-- تقديم النصائح المالية والاستثمارية
-- المساعدة في القرارات التقنية والتسويقية
-- الإجابة على الأسئلة العامة في مجال الأعمال
-- تقديم استشارات في ريادة الأعمال والإدارة
-- مساعدة في التخطيط الاستراتيجي وإدارة المشاريع
-
-قواعد المحادثة:
-- اجعل إجاباتك مفيدة وعملية وقابلة للتطبيق
-- استخدم اللغة العربية البسيطة والواضحة
-- كن ودوداً ومهنياً في التعامل
-- قدم أمثلة عملية عندما يكون ذلك مناسباً
-- إذا سأل المستخدم عن تحليل فكرة تجارية، قدم تحليلاً مختصراً ومفيداً
-- إذا كان السؤال خارج نطاق تخصصك، أخبر المستخدم بأدب واقترح مساعدة في المجالات التي تتقنها
-
-كن مساعداً مفيداً وداعماً لرحلة المستخدم في عالم الأعمال.`;
-
-    console.log('AI Chat request with model:', modelToUse);
-    
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openRouterKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: modelToUse,
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('OpenRouter API error:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error("فشل في الحصول على رد من المساعد الذكي");
-    }
-
-    const data = await response.json();
-    console.log('OpenRouter chat response received:', data);
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("Invalid OpenRouter response structure:", data);
-      throw new Error("استجابة غير صحيحة من المساعد الذكي");
-    }
-    
-    const aiResponse = data.choices[0].message.content;
-    
-    // Save the chat interaction to analysis_history
-    if (userId) {
-      try {
-        await supabase
-          .from('analysis_history')
-          .insert({
-            user_id: userId,
-            idea_text: message,
-            analysis_result: { response: aiResponse },
-            analysis_type: 'ai_chat',
-            language: language
-          });
-      } catch (dbError) {
-        console.error('Database save error:', dbError);
-        // Continue even if DB save fails
-      }
-    }
-
-    return new Response(JSON.stringify({ 
-      analysis_result: { response: aiResponse },
-      success: true 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-
-  } catch (error) {
-    console.error('Error in AI chat function:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'حدث خطأ غير متوقع';
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      success: false 
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-}
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -162,38 +15,24 @@ serve(async (req) => {
 
   try {
     const { 
-      ideaText,
       idea, 
       analysisType = 'basic', 
       userId,
       currentQuestion,
       userAnswer,
       allAnswers = [],
-      previousAnalysis,
-      language = 'ar'
+      previousAnalysis
     } = await req.json();
-
-    // Support both ideaText and idea for backward compatibility
-    const textToAnalyze = ideaText || idea;
 
     // للتحديث التفاعلي
     if (analysisType === 'interactive_update') {
       return await handleInteractiveUpdate(req, {
-        idea: textToAnalyze,
+        idea,
         currentQuestion,
         userAnswer,
         allAnswers,
         previousAnalysis,
         userId
-      });
-    }
-
-    // Handle AI chat mode
-    if (analysisType === 'ai_chat') {
-      return await handleAIChat(req, {
-        message: textToAnalyze,
-        userId,
-        language
       });
     }
 
@@ -344,7 +183,7 @@ ${jsonFormat}
           },
           {
             role: "user",
-            content: `حلل فكرة المشروع التالية: ${textToAnalyze}`
+            content: `حلل فكرة المشروع التالية: ${idea}`
           }
         ],
         temperature: 0.5,
@@ -462,7 +301,7 @@ ${jsonFormat}
       const { error: insertError } = await supabase
         .from('project_ideas')
         .insert({
-          idea_text: textToAnalyze,
+          idea_text: idea,
           analysis_result: analysis,
           user_id: userId,
           status: 'completed'
@@ -479,10 +318,10 @@ ${jsonFormat}
           .from('analysis_history')
           .insert({
             user_id: userId,
-            idea_text: textToAnalyze,
+            idea_text: idea,
             analysis_result: analysis,
             analysis_type: analysisType,
-            language: language
+            language: 'ar'
           });
       }
     } catch (dbError) {
