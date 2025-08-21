@@ -44,6 +44,8 @@ const Admin = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingService, setEditingService] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
+  const [userAnalyses, setUserAnalyses] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user, isAdmin, loading, signOut } = useAuth();
 
@@ -261,6 +263,46 @@ const Admin = () => {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchUserAnalyses = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('analysis_history')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setUserAnalyses(data || []);
+      setSelectedUserId(userId);
+    } catch (error) {
+      console.error('Error fetching user analyses:', error);
+    }
+  };
+
+  const toggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_admin: !currentIsAdmin })
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم التحديث",
+        description: `تم ${!currentIsAdmin ? 'إضافة' : 'إزالة'} صلاحيات المدير بنجاح`,
+      });
+      
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -1228,10 +1270,24 @@ const Admin = () => {
                                   تاريخ التسجيل: {new Date(userProfile.created_at).toLocaleDateString('ar-SA')}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2">
+                               <div className="flex items-center gap-2">
                                 <Badge variant={userProfile.is_admin ? "default" : "secondary"}>
                                   {userProfile.is_admin ? "مدير" : "مستخدم عادي"}
                                 </Badge>
+                                <Button
+                                  size="sm"
+                                  variant={userProfile.is_admin ? "destructive" : "default"}
+                                  onClick={() => toggleAdmin(userProfile.user_id, userProfile.is_admin)}
+                                >
+                                  {userProfile.is_admin ? "إزالة مدير" : "جعل مدير"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchUserAnalyses(userProfile.user_id)}
+                                >
+                                  التحليلات
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1241,6 +1297,64 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              {selectedUserId && userAnalyses.length > 0 && (
+                <Card className="shadow-elegant border-border/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-primary" />
+                      سجل التحليلات للمستخدم
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {userAnalyses.map((analysis) => (
+                        <div key={analysis.id} className="p-4 border rounded-lg">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-sm">
+                                تحليل: {analysis.idea_text.substring(0, 50)}...
+                              </h4>
+                              <Badge variant="secondary">{analysis.analysis_type}</Badge>
+                            </div>
+                            {analysis.analysis_result && (
+                              <div className="grid grid-cols-4 gap-4 text-sm">
+                                <div className="text-center p-2 bg-gradient-glow rounded">
+                                  <span className="font-bold text-lg text-primary">
+                                    {analysis.analysis_result.overall_score}%
+                                  </span>
+                                  <p className="text-xs text-muted-foreground">التقييم العام</p>
+                                </div>
+                                <div className="text-center p-2 bg-gradient-glow rounded">
+                                  <span className="font-bold text-lg text-primary">
+                                    {analysis.analysis_result.market_potential}%
+                                  </span>
+                                  <p className="text-xs text-muted-foreground">إمكانية السوق</p>
+                                </div>
+                                <div className="text-center p-2 bg-gradient-glow rounded">
+                                  <span className="font-bold text-lg text-primary">
+                                    {analysis.analysis_result.feasibility}%
+                                  </span>
+                                  <p className="text-xs text-muted-foreground">قابلية التنفيذ</p>
+                                </div>
+                                <div className="text-center p-2 bg-gradient-glow rounded">
+                                  <span className="font-bold text-lg text-primary">
+                                    {analysis.analysis_result.risk_level}%
+                                  </span>
+                                  <p className="text-xs text-muted-foreground">مستوى المخاطر</p>
+                                </div>
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              تاريخ التحليل: {new Date(analysis.created_at).toLocaleDateString('ar-SA')}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </div>

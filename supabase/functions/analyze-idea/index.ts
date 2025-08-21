@@ -157,6 +157,9 @@ serve(async (req) => {
 ${jsonFormat}
 
 تعليمات مهمة:
+- أجعل كل النسب واقعية ومنطقية (لا تكن متفائلاً بشكل مفرط)
+- معظم الأفكار الجديدة تحصل على نسب 40-70% في البداية
+- كن صادقاً في التقييم وأظهر التحديات الحقيقية
 - أجعل كل الأسئلة التفاعلية بسيطة ومباشرة
 - ركز على الجوانب العملية والقابلة للتنفيذ
 - استخدم اللغة العربية البسيطة والواضحة
@@ -243,12 +246,12 @@ ${jsonFormat}
       console.error('JSON parsing failed:', parseError);
       console.log('Failed to parse text:', analysisText);
       
-      // Create a basic analysis as fallback with interactive questions
+      // Create a basic analysis as fallback with interactive questions - more realistic scores
       analysis = {
-        overall_score: 75,
-        market_potential: 70,
-        feasibility: 80,
-        risk_level: 40,
+        overall_score: 55,
+        market_potential: 50,
+        feasibility: 60,
+        risk_level: 65,
         strengths: ["فكرة قابلة للتطبيق", "سوق واعد", "إمكانية نمو جيدة"],
         weaknesses: ["يحتاج دراسة أعمق", "منافسة محتملة", "يتطلب استثمار أولي"],
         recommendations: [
@@ -307,6 +310,19 @@ ${jsonFormat}
       if (insertError) {
         console.error('Error saving analysis:', insertError);
         // Don't throw error here, just log it
+      }
+
+      // Also save to analysis_history table for user tracking
+      if (userId) {
+        await supabase
+          .from('analysis_history')
+          .insert({
+            user_id: userId,
+            idea_text: idea,
+            analysis_result: analysis,
+            analysis_type: analysisType,
+            language: 'ar'
+          });
       }
     } catch (dbError) {
       console.error('Database save error:', dbError);

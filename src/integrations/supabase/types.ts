@@ -91,6 +91,39 @@ export type Database = {
         }
         Relationships: []
       }
+      analysis_history: {
+        Row: {
+          analysis_result: Json | null
+          analysis_type: string | null
+          created_at: string
+          id: string
+          idea_text: string
+          language: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analysis_type?: string | null
+          created_at?: string
+          id?: string
+          idea_text: string
+          language?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_result?: Json | null
+          analysis_type?: string | null
+          created_at?: string
+          id?: string
+          idea_text?: string
+          language?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string
