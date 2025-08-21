@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp } from "lucide-react";
+import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users } from "lucide-react";
 import Header from "@/components/Header";
 
 const Admin = () => {
@@ -43,6 +43,7 @@ const Admin = () => {
   });
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingService, setEditingService] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]);
   const { toast } = useToast();
   const { user, isAdmin, loading, signOut } = useAuth();
 
@@ -72,6 +73,7 @@ const Admin = () => {
       fetchModels();
       fetchProducts();
       fetchServices();
+      fetchUsers();
       fetchSelectedModel();
       checkDatabaseApiKey();
       if (isKeySet && openRouterKey) {
@@ -245,6 +247,20 @@ const Admin = () => {
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -625,7 +641,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="ai-settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 إعدادات الذكاء الاصطناعي
@@ -641,6 +657,10 @@ const Admin = () => {
               <TabsTrigger value="models" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 اختيار النموذج
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                المستخدمين
               </TabsTrigger>
             </TabsList>
 
@@ -1173,6 +1193,52 @@ const Admin = () => {
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-6">
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    جميع المستخدمين
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {users.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>لا يوجد مستخدمين مسجلين</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4">
+                        {users.map((userProfile) => (
+                          <div key={userProfile.id} className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-medium">
+                                  {userProfile.display_name || 'مستخدم غير محدد'}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  معرف المستخدم: {userProfile.user_id}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  تاريخ التسجيل: {new Date(userProfile.created_at).toLocaleDateString('ar-SA')}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={userProfile.is_admin ? "default" : "secondary"}>
+                                  {userProfile.is_admin ? "مدير" : "مستخدم عادي"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

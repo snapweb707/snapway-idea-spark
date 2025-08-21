@@ -200,11 +200,21 @@ const BusinessAnalysis = () => {
       }
     } catch (error) {
       console.error('Update error:', error);
-      toast({
-        title: "خطأ في التحديث",
-        description: error instanceof Error ? error.message : "حدث خطأ أثناء تحديث التحليل",
-        variant: "destructive",
-      });
+      // Skip to next question instead of stopping
+      if (currentQuestionIndex < (analysis?.interactive_questions?.length || 0) - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setCurrentAnswer("");
+        toast({
+          title: "تم التخطي",
+          description: "تم الانتقال للسؤال التالي",
+        });
+      } else {
+        setIsInteractiveMode(false);
+        toast({
+          title: "تم الانتهاء",
+          description: "تم الانتهاء من الأسئلة التفاعلية",
+        });
+      }
     } finally {
       setIsUpdatingAnalysis(false);
     }
