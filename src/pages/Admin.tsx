@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users } from "lucide-react";
+import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users, UserPlus, UserMinus } from "lucide-react";
 import Header from "@/components/Header";
+import { useTranslation } from 'react-i18next';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -46,8 +47,11 @@ const Admin = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [userAnalyses, setUserAnalyses] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [isAddingAdmin, setIsAddingAdmin] = useState(false);
   const { toast } = useToast();
   const { user, isAdmin, loading, signOut } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -279,6 +283,76 @@ const Admin = () => {
       setSelectedUserId(userId);
     } catch (error) {
       console.error('Error fetching user analyses:', error);
+    }
+  };
+
+  const addAdminByEmail = async () => {
+    if (!newAdminEmail.trim()) {
+      toast({
+        title: t('loginRequired'),
+        description: "يرجى إدخال البريد الإلكتروني",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingAdmin(true);
+
+    try {
+      const { data, error } = await supabase.rpc('assign_admin_role', {
+        target_email: newAdminEmail,
+        assigned_by_id: user?.id
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result.success) {
+        toast({
+          title: t('adminAdded'),
+          description: result.message,
+        });
+        setNewAdminEmail("");
+        fetchUsers();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: t('analysisError'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingAdmin(false);
+    }
+  };
+
+  const removeAdminByEmail = async (email: string) => {
+    try {
+      const { data, error } = await supabase.rpc('remove_admin_role', {
+        target_email: email,
+        removed_by_id: user?.id
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result.success) {
+        toast({
+          title: t('adminRemoved'),
+          description: result.message,
+        });
+        fetchUsers();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: t('analysisError'),
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -683,26 +757,30 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="ai-settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
-                إعدادات الذكاء الاصطناعي
+                {t('systemSettings')}
+              </TabsTrigger>
+              <TabsTrigger value="admins" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                {t('userManagement')}
               </TabsTrigger>
               <TabsTrigger value="services" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
-                إدارة الخدمات
+                {t('services')}
               </TabsTrigger>
               <TabsTrigger value="products" className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
-                إدارة المنتجات
+                {t('products')}
               </TabsTrigger>
               <TabsTrigger value="models" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                اختيار النموذج
+                <Bot className="w-4 h-4" />
+                النماذج
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                المستخدمين
+                {t('history')}
               </TabsTrigger>
             </TabsList>
 
@@ -788,6 +866,136 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-primary" />
+                    {t('addAdmin')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder={t('email')}
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={addAdminByEmail}
+                      disabled={isAddingAdmin || !newAdminEmail.trim()}
+                    >
+                      {isAddingAdmin ? "جاري الإضافة..." : t('addAdmin')}
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    أدخل البريد الإلكتروني للمستخدم المراد تعيينه كمدير
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    {t('adminList')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {users.filter(user => user.is_admin).map((admin) => (
+                      <div key={admin.id} className="flex items-center justify-between p-4 border rounded-lg bg-primary/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                            <Shield className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{admin.display_name || "غير محدد"}</p>
+                            <p className="text-sm text-muted-foreground">البريد الإلكتروني غير متاح</p>
+                            <Badge variant="default" className="mt-1">
+                              {t('admin_role')}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {admin.user_id !== user?.id && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Note: We need email to remove admin, which we don't have directly
+                                // This would need to be implemented with a different approach
+                                toast({
+                                  title: "تنبيه",
+                                  description: "يجب استخدام البريد الإلكتروني لإزالة المدير",
+                                  variant: "destructive",
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <UserMinus className="w-4 h-4" />
+                              {t('removeAdmin')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {users.filter(user => user.is_admin).length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        لا يوجد مديرين في النظام
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    جميع المستخدمين
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {users.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            user.is_admin ? 'bg-primary/20' : 'bg-muted'
+                          }`}>
+                            {user.is_admin ? (
+                              <Shield className="w-5 h-5 text-primary" />
+                            ) : (
+                              <Users className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{user.display_name || "غير محدد"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              تاريخ التسجيل: {new Date(user.created_at).toLocaleDateString('ar-EG')}
+                            </p>
+                            <Badge variant={user.is_admin ? "default" : "secondary"} className="mt-1">
+                              {user.is_admin ? t('admin_role') : t('user_role')}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fetchUserAnalyses(user.user_id)}
+                          >
+                            عرض التحليلات
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
             <TabsContent value="services" className="space-y-6">
               <Card className="shadow-elegant border-border/50">
