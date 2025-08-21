@@ -103,14 +103,76 @@ const History = () => {
     }
 
     return (
-      <div className="space-y-4">
-        {result.summary && (
-          <div>
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              الملخص
+      <div className="space-y-6">
+        {result.overall_score && (
+          <div className="bg-gradient-glow p-4 rounded-lg">
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              التقييم العام
             </h4>
-            <p className="text-muted-foreground whitespace-pre-wrap">{result.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{result.overall_score}%</div>
+                <div className="text-sm text-muted-foreground">النتيجة الإجمالية</div>
+              </div>
+              {result.market_potential && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{result.market_potential}%</div>
+                  <div className="text-sm text-muted-foreground">إمكانية السوق</div>
+                </div>
+              )}
+              {result.feasibility && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{result.feasibility}%</div>
+                  <div className="text-sm text-muted-foreground">قابلية التنفيذ</div>
+                </div>
+              )}
+            </div>
+            {result.risk_level && (
+              <div className="mt-4 text-center">
+                <div className="text-lg font-semibold text-orange-600">مستوى المخاطر: {result.risk_level}%</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {result.market_size && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-600">
+              <Globe className="w-4 h-4" />
+              حجم السوق
+            </h4>
+            <p className="text-muted-foreground bg-muted p-3 rounded-lg">{result.market_size}</p>
+          </div>
+        )}
+
+        {result.target_audience && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-purple-600">
+              <CheckCircle className="w-4 h-4" />
+              الجمهور المستهدف
+            </h4>
+            <p className="text-muted-foreground bg-muted p-3 rounded-lg">{result.target_audience}</p>
+          </div>
+        )}
+
+        {result.revenue_model && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-green-600">
+              <TrendingUp className="w-4 h-4" />
+              نموذج الإيرادات
+            </h4>
+            <p className="text-muted-foreground bg-muted p-3 rounded-lg">{result.revenue_model}</p>
+          </div>
+        )}
+
+        {result.competitive_advantage && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-indigo-600">
+              <CheckCircle className="w-4 h-4" />
+              الميزة التنافسية
+            </h4>
+            <p className="text-muted-foreground bg-muted p-3 rounded-lg">{result.competitive_advantage}</p>
           </div>
         )}
         
@@ -120,9 +182,12 @@ const History = () => {
               <CheckCircle className="w-4 h-4" />
               نقاط القوة
             </h4>
-            <ul className="space-y-1">
+            <ul className="space-y-2 bg-green-50 p-3 rounded-lg">
               {result.strengths.map((strength: string, index: number) => (
-                <li key={index} className="text-sm text-muted-foreground">• {strength}</li>
+                <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-green-600 mt-1">•</span>
+                  <span>{strength}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -134,14 +199,101 @@ const History = () => {
               <AlertTriangle className="w-4 h-4" />
               نقاط الضعف
             </h4>
-            <ul className="space-y-1">
+            <ul className="space-y-2 bg-red-50 p-3 rounded-lg">
               {result.weaknesses.map((weakness: string, index: number) => (
-                <li key={index} className="text-sm text-muted-foreground">• {weakness}</li>
+                <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-red-600 mt-1">•</span>
+                  <span>{weakness}</span>
+                </li>
               ))}
             </ul>
           </div>
         )}
         
+        {result.recommendations && result.recommendations.length > 0 && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-600">
+              <FileText className="w-4 h-4" />
+              التوصيات
+            </h4>
+            <ul className="space-y-2 bg-blue-50 p-3 rounded-lg">
+              {result.recommendations.map((recommendation: string, index: number) => (
+                <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span>{recommendation}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {result.next_steps && (
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-600">
+              <TrendingUp className="w-4 h-4" />
+              الخطوات التالية
+            </h4>
+            <div className="space-y-4">
+              {result.next_steps.phase_1 && (
+                <div className="bg-purple-50 p-3 rounded-lg">
+                  <h5 className="font-medium text-purple-800 mb-2">المرحلة الأولى:</h5>
+                  <ul className="space-y-1">
+                    {result.next_steps.phase_1.map((step: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="text-purple-600 mt-1">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.next_steps.phase_2 && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">المرحلة الثانية:</h5>
+                  <ul className="space-y-1">
+                    {result.next_steps.phase_2.map((step: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.next_steps.phase_3 && (
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <h5 className="font-medium text-green-800 mb-2">المرحلة الثالثة:</h5>
+                  <ul className="space-y-1">
+                    {result.next_steps.phase_3.map((step: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="text-green-600 mt-1">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.next_steps.timeline && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h5 className="font-medium text-gray-800 mb-2">الجدول الزمني:</h5>
+                  <p className="text-sm text-muted-foreground">{result.next_steps.timeline}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Legacy support for old format */}
+        {result.summary && (
+          <div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              الملخص
+            </h4>
+            <p className="text-muted-foreground whitespace-pre-wrap">{result.summary}</p>
+          </div>
+        )}
+
         {result.opportunities && result.opportunities.length > 0 && (
           <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-600">
@@ -156,7 +308,7 @@ const History = () => {
           </div>
         )}
         
-        {result.score && (
+        {result.score && !result.overall_score && (
           <div>
             <h4 className="font-semibold mb-2">التقييم العام</h4>
             <div className="flex items-center gap-2">
@@ -177,6 +329,7 @@ const History = () => {
   const downloadAnalysisAsPDF = async (analysis: AnalysisRecord) => {
     setDownloadingPdf(true);
     try {
+      // Generate comprehensive PDF content
       const isArabic = analysis.language === 'ar';
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -184,136 +337,152 @@ const History = () => {
         format: 'a4',
       });
 
-      // Configure for RTL if Arabic
-      if (isArabic) {
-        pdf.setR2L(true);
-      }
-
-      // Set font (using default for now)
-      pdf.setFontSize(16);
+      let yPosition = 20;
+      const pageHeight = 280;
+      const rightMargin = 200;
+      const leftMargin = 10;
       
-      // Title
-      const title = isArabic ? 'تحليل فكرة المشروع' : 'Business Idea Analysis';
-      pdf.text(title, isArabic ? 200 : 10, 20);
-      
-      // Date
-      const dateText = format(new Date(analysis.created_at), 'dd/MM/yyyy HH:mm');
-      pdf.setFontSize(10);
-      pdf.text(dateText, isArabic ? 200 : 10, 30);
-      
-      // Analysis Type
-      const typeLabel = isArabic ? `نوع التحليل: ${getAnalysisTypeLabel(analysis.analysis_type)}` : `Analysis Type: ${analysis.analysis_type}`;
-      pdf.text(typeLabel, isArabic ? 200 : 10, 40);
-      
-      let yPosition = 55;
-      
-      // Idea Text
-      pdf.setFontSize(14);
-      const ideaTitle = isArabic ? 'نص الفكرة:' : 'Idea Text:';
-      pdf.text(ideaTitle, isArabic ? 200 : 10, yPosition);
-      yPosition += 10;
-      
-      pdf.setFontSize(10);
-      const ideaLines = pdf.splitTextToSize(analysis.idea_text, 180);
-      ideaLines.forEach((line: string) => {
-        if (yPosition > 280) {
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
+        if (yPosition > pageHeight) {
           pdf.addPage();
           yPosition = 20;
         }
-        pdf.text(line, isArabic ? 200 : 10, yPosition);
-        yPosition += 7;
-      });
-      
+        pdf.setFontSize(fontSize);
+        if (isBold) pdf.setFont(undefined, 'bold');
+        else pdf.setFont(undefined, 'normal');
+        
+        const lines = pdf.splitTextToSize(text, 180);
+        lines.forEach((line: string) => {
+          if (yPosition > pageHeight) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(line, isArabic ? rightMargin : leftMargin, yPosition);
+          yPosition += fontSize * 0.5;
+        });
+        yPosition += 5;
+      };
+
+      // Title and header
+      addText('تحليل فكرة المشروع الشامل', 20, true);
+      addText(`التاريخ: ${format(new Date(analysis.created_at), 'dd/MM/yyyy HH:mm')}`, 12);
+      addText(`نوع التحليل: ${getAnalysisTypeLabel(analysis.analysis_type)}`, 12);
+      addText(`اللغة: ${getLanguageLabel(analysis.language)}`, 12);
       yPosition += 10;
-      
-      // Analysis Results
+
+      // Idea text
+      addText('نص الفكرة:', 14, true);
+      addText(analysis.idea_text, 10);
+      yPosition += 10;
+
+      // Analysis results
       if (analysis.analysis_result) {
         const result = analysis.analysis_result;
+        addText('نتائج التحليل:', 16, true);
         
-        pdf.setFontSize(14);
-        const resultsTitle = isArabic ? 'نتائج التحليل:' : 'Analysis Results:';
-        pdf.text(resultsTitle, isArabic ? 200 : 10, yPosition);
-        yPosition += 15;
-        
-        pdf.setFontSize(10);
-        
-        if (typeof result === 'string') {
-          const resultLines = pdf.splitTextToSize(result, 180);
-          resultLines.forEach((line: string) => {
-            if (yPosition > 280) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            pdf.text(line, isArabic ? 200 : 10, yPosition);
-            yPosition += 7;
+        // Scores section
+        if (result.overall_score || result.market_potential || result.feasibility) {
+          addText('التقييمات:', 14, true);
+          if (result.overall_score) addText(`النتيجة الإجمالية: ${result.overall_score}%`, 12);
+          if (result.market_potential) addText(`إمكانية السوق: ${result.market_potential}%`, 12);
+          if (result.feasibility) addText(`قابلية التنفيذ: ${result.feasibility}%`, 12);
+          if (result.risk_level) addText(`مستوى المخاطر: ${result.risk_level}%`, 12);
+          yPosition += 5;
+        }
+
+        // Market size
+        if (result.market_size) {
+          addText('حجم السوق:', 14, true);
+          addText(result.market_size, 10);
+        }
+
+        // Target audience
+        if (result.target_audience) {
+          addText('الجمهور المستهدف:', 14, true);
+          addText(result.target_audience, 10);
+        }
+
+        // Revenue model
+        if (result.revenue_model) {
+          addText('نموذج الإيرادات:', 14, true);
+          addText(result.revenue_model, 10);
+        }
+
+        // Competitive advantage
+        if (result.competitive_advantage) {
+          addText('الميزة التنافسية:', 14, true);
+          addText(result.competitive_advantage, 10);
+        }
+
+        // Strengths
+        if (result.strengths && result.strengths.length > 0) {
+          addText('نقاط القوة:', 14, true);
+          result.strengths.forEach((strength: string, index: number) => {
+            addText(`${index + 1}. ${strength}`, 10);
           });
-        } else {
-          // Handle structured results
-          if (result.summary) {
-            const summaryTitle = isArabic ? 'الملخص:' : 'Summary:';
-            pdf.text(summaryTitle, isArabic ? 200 : 10, yPosition);
-            yPosition += 7;
-            const summaryLines = pdf.splitTextToSize(result.summary, 170);
-            summaryLines.forEach((line: string) => {
-              if (yPosition > 280) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-              pdf.text(line, isArabic ? 190 : 20, yPosition);
-              yPosition += 7;
-            });
-            yPosition += 5;
-          }
+        }
+
+        // Weaknesses
+        if (result.weaknesses && result.weaknesses.length > 0) {
+          addText('نقاط الضعف:', 14, true);
+          result.weaknesses.forEach((weakness: string, index: number) => {
+            addText(`${index + 1}. ${weakness}`, 10);
+          });
+        }
+
+        // Recommendations
+        if (result.recommendations && result.recommendations.length > 0) {
+          addText('التوصيات:', 14, true);
+          result.recommendations.forEach((recommendation: string, index: number) => {
+            addText(`${index + 1}. ${recommendation}`, 10);
+          });
+        }
+
+        // Next steps
+        if (result.next_steps) {
+          addText('الخطوات التالية:', 14, true);
           
-          if (result.strengths && result.strengths.length > 0) {
-            const strengthsTitle = isArabic ? 'نقاط القوة:' : 'Strengths:';
-            pdf.text(strengthsTitle, isArabic ? 200 : 10, yPosition);
-            yPosition += 7;
-            result.strengths.forEach((strength: string) => {
-              if (yPosition > 280) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-              pdf.text(`• ${strength}`, isArabic ? 190 : 20, yPosition);
-              yPosition += 7;
-            });
-            yPosition += 5;
-          }
-          
-          if (result.weaknesses && result.weaknesses.length > 0) {
-            const weaknessesTitle = isArabic ? 'نقاط الضعف:' : 'Weaknesses:';
-            pdf.text(weaknessesTitle, isArabic ? 200 : 10, yPosition);
-            yPosition += 7;
-            result.weaknesses.forEach((weakness: string) => {
-              if (yPosition > 280) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-              pdf.text(`• ${weakness}`, isArabic ? 190 : 20, yPosition);
-              yPosition += 7;
-            });
-            yPosition += 5;
-          }
-          
-          if (result.opportunities && result.opportunities.length > 0) {
-            const opportunitiesTitle = isArabic ? 'الفرص المتاحة:' : 'Opportunities:';
-            pdf.text(opportunitiesTitle, isArabic ? 200 : 10, yPosition);
-            yPosition += 7;
-            result.opportunities.forEach((opportunity: string) => {
-              if (yPosition > 280) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-              pdf.text(`• ${opportunity}`, isArabic ? 190 : 20, yPosition);
-              yPosition += 7;
+          if (result.next_steps.phase_1) {
+            addText('المرحلة الأولى:', 12, true);
+            result.next_steps.phase_1.forEach((step: string, index: number) => {
+              addText(`${index + 1}. ${step}`, 10);
             });
           }
           
-          if (result.score) {
-            yPosition += 5;
-            const scoreTitle = isArabic ? `التقييم العام: ${result.score}%` : `Overall Score: ${result.score}%`;
-            pdf.text(scoreTitle, isArabic ? 200 : 10, yPosition);
+          if (result.next_steps.phase_2) {
+            addText('المرحلة الثانية:', 12, true);
+            result.next_steps.phase_2.forEach((step: string, index: number) => {
+              addText(`${index + 1}. ${step}`, 10);
+            });
           }
+          
+          if (result.next_steps.phase_3) {
+            addText('المرحلة الثالثة:', 12, true);
+            result.next_steps.phase_3.forEach((step: string, index: number) => {
+              addText(`${index + 1}. ${step}`, 10);
+            });
+          }
+          
+          if (result.next_steps.timeline) {
+            addText('الجدول الزمني:', 12, true);
+            addText(result.next_steps.timeline, 10);
+          }
+        }
+
+        // Legacy support for old format
+        if (typeof result === 'string') {
+          addText('نتائج التحليل:', 14, true);
+          addText(result, 10);
+        } else if (result.summary) {
+          addText('الملخص:', 14, true);
+          addText(result.summary, 10);
+        }
+
+        if (result.opportunities && result.opportunities.length > 0) {
+          addText('الفرص المتاحة:', 14, true);
+          result.opportunities.forEach((opportunity: string, index: number) => {
+            addText(`${index + 1}. ${opportunity}`, 10);
+          });
         }
       }
       
@@ -509,7 +678,7 @@ const History = () => {
 
         {/* Full View Dialog */}
         <Dialog open={isFullViewOpen} onOpenChange={setIsFullViewOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="full-analysis-description">
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
                 <span>عرض التحليل الكامل</span>
