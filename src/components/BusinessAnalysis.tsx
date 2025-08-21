@@ -322,6 +322,10 @@ const BusinessAnalysis = () => {
         format: 'a4'
       });
 
+      // إضافة الخط العربي
+      pdf.addFont('https://fonts.gstatic.com/s/notoarabic/v18/Hgo13k-tfSpn0qi1SFdUfVtXRcuvYFyGmcM.ttf', 'NotoArabic', 'normal');
+      pdf.setFont('NotoArabic');
+
       let yPosition = 20;
       const pageHeight = 280;
       const margin = 20;
@@ -333,16 +337,21 @@ const BusinessAnalysis = () => {
         }
         
         pdf.setFontSize(fontSize);
-        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+        pdf.setFont('NotoArabic', isBold ? 'bold' : 'normal');
         
-        const lines = pdf.splitTextToSize(text, 170);
+        // تحويل النص للاتجاه الصحيح
+        const processedText = text.split('\n').reverse().join('\n');
+        const lines = pdf.splitTextToSize(processedText, 170);
         
         lines.forEach((line: string) => {
           if (yPosition > pageHeight) {
             pdf.addPage();
             yPosition = 20;
           }
-          pdf.text(line, margin, yPosition);
+          // محاذاة النص للجهة اليمنى للعربية
+          const lineWidth = pdf.getTextWidth(line);
+          const xPosition = 210 - margin - lineWidth; // A4 width - margin - text width
+          pdf.text(line, xPosition, yPosition);
           yPosition += fontSize * 0.5;
         });
         yPosition += 5;

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Facebook, Twitter, Instagram, Linkedin, Youtube, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ const Contact = () => {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactSettings, setContactSettings] = useState<{[key: string]: string}>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,32 +63,93 @@ const Contact = () => {
     }));
   };
 
+  useEffect(() => {
+    fetchContactSettings();
+  }, []);
+
+  const fetchContactSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contact_settings')
+        .select('*');
+
+      if (error) throw error;
+
+      const settingsObj: {[key: string]: string} = {};
+      data?.forEach(setting => {
+        settingsObj[setting.setting_key] = setting.setting_value || '';
+      });
+      setContactSettings(settingsObj);
+    } catch (error) {
+      console.error('Error fetching contact settings:', error);
+    }
+  };
+
   const contactInfo = [
     {
       icon: Mail,
-      title: t('contact.info.email.title'),
-      info: t('contact.info.email.value'),
-      description: t('contact.info.email.desc')
+      title: "البريد الإلكتروني",
+      info: contactSettings.email || t('contact.info.email.value'),
+      description: "راسلنا في أي وقت"
     },
     {
       icon: Phone,
-      title: t('contact.info.phone.title'),
-      info: t('contact.info.phone.value'),
-      description: t('contact.info.phone.desc')
+      title: "رقم الهاتف",
+      info: contactSettings.phone || t('contact.info.phone.value'),
+      description: "متاح 24/7"
     },
     {
       icon: MapPin,
-      title: t('contact.info.address.title'),
-      info: t('contact.info.address.value'),
-      description: t('contact.info.address.desc')
+      title: "العنوان",
+      info: contactSettings.address || t('contact.info.address.value'),
+      description: "مقر الشركة الرئيسي"
     },
     {
       icon: Clock,
-      title: t('contact.info.hours.title'),
-      info: t('contact.info.hours.value'),
-      description: t('contact.info.hours.desc')
+      title: "ساعات العمل",
+      info: contactSettings.hours || t('contact.info.hours.value'),
+      description: "خدمة مستمرة"
     }
   ];
+
+  const socialMediaLinks = [
+    {
+      icon: Facebook,
+      name: "Facebook",
+      url: contactSettings.facebook,
+      color: "text-blue-600"
+    },
+    {
+      icon: Twitter,
+      name: "Twitter",
+      url: contactSettings.twitter,
+      color: "text-blue-400"
+    },
+    {
+      icon: Instagram,
+      name: "Instagram",
+      url: contactSettings.instagram,
+      color: "text-pink-600"
+    },
+    {
+      icon: Linkedin,
+      name: "LinkedIn",
+      url: contactSettings.linkedin,
+      color: "text-blue-700"
+    },
+    {
+      icon: Youtube,
+      name: "YouTube",
+      url: contactSettings.youtube,
+      color: "text-red-600"
+    },
+    {
+      icon: MessageCircle,
+      name: "WhatsApp",
+      url: contactSettings.whatsapp ? `https://wa.me/${contactSettings.whatsapp.replace(/[^0-9]/g, '')}` : '',
+      color: "text-green-600"
+    }
+  ].filter(social => social.url && social.url.trim());
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -209,6 +271,31 @@ const Contact = () => {
                 </CardContent>
               </Card>
             ))}
+            
+            {/* Social Media Links */}
+            {socialMediaLinks.length > 0 && (
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg">تابعنا على</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    {socialMediaLinks.map((social, index) => (
+                      <a
+                        key={index}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors ${social.color}`}
+                      >
+                        <social.icon className="w-6 h-6" />
+                        <span className="text-xs font-medium">{social.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 

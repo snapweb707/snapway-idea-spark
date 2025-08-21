@@ -252,6 +252,109 @@ export const ContactManagement = () => {
                       }))}
                     />
                   </div>
+                  
+                  {/* Social Media Settings */}
+                  <div className="border-t pt-4 mt-6">
+                    <h4 className="font-semibold mb-4">وسائل التواصل الاجتماعي</h4>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="facebook">Facebook</Label>
+                        <Input
+                          id="facebook"
+                          placeholder="https://facebook.com/yourpage"
+                          value={editedSettings.facebook || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            facebook: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="twitter">Twitter</Label>
+                        <Input
+                          id="twitter"
+                          placeholder="https://twitter.com/yourpage"
+                          value={editedSettings.twitter || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            twitter: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="instagram">Instagram</Label>
+                        <Input
+                          id="instagram"
+                          placeholder="https://instagram.com/yourpage"
+                          value={editedSettings.instagram || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            instagram: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="linkedin">LinkedIn</Label>
+                        <Input
+                          id="linkedin"
+                          placeholder="https://linkedin.com/company/yourpage"
+                          value={editedSettings.linkedin || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            linkedin: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="youtube">YouTube</Label>
+                        <Input
+                          id="youtube"
+                          placeholder="https://youtube.com/channel/yourpage"
+                          value={editedSettings.youtube || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            youtube: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="whatsapp">WhatsApp</Label>
+                        <Input
+                          id="whatsapp"
+                          placeholder="+966xxxxxxxxx"
+                          value={editedSettings.whatsapp || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            whatsapp: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="telegram">Telegram</Label>
+                        <Input
+                          id="telegram"
+                          placeholder="@yourusername"
+                          value={editedSettings.telegram || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            telegram: e.target.value
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="snapchat">Snapchat</Label>
+                        <Input
+                          id="snapchat"
+                          placeholder="yourusername"
+                          value={editedSettings.snapchat || ''}
+                          onChange={(e) => setEditedSettings(prev => ({
+                            ...prev,
+                            snapchat: e.target.value
+                          }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-2 pt-4">
                   <Button variant="outline" onClick={() => setSettingsDialogOpen(false)}>
