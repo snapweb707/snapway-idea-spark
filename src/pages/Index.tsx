@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { Brain, TrendingUp, Target, BarChart3, Users, Lightbulb, LogIn, UserPlus } from "lucide-react";
 import heroImage from "@/assets/hero-analysis.jpg";
+import NotificationBanner from "@/components/NotificationBanner";
 
 const Index = () => {
   const { user } = useAuth();
@@ -15,6 +16,9 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <Header />
       
+      
+      {/* Notifications Banner */}
+      <NotificationBanner />
       
       {/* Analysis Section - Moved to top */}
       <section id="analysis-section" className="py-16 px-4">

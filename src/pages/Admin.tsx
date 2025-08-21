@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users, UserPlus, UserMinus } from "lucide-react";
+import { Settings, Key, Shield, CheckCircle, XCircle, Package, Bot, Plus, Trash2, Edit, Globe, Image, BarChart3, LogOut, Target, TrendingUp, Users, UserPlus, UserMinus, Bell } from "lucide-react";
 import Header from "@/components/Header";
+import NotificationsManagement from "@/components/admin/NotificationsManagement";
 import { useTranslation } from 'react-i18next';
 
 const Admin = () => {
@@ -101,6 +102,59 @@ const Admin = () => {
       }
     } catch (error) {
       console.error('Error fetching selected model:', error);
+    }
+  };
+
+
+  const toggleNotificationStatus = async (notificationId: string, isActive: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_active: !isActive })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: `تم ${!isActive ? 'تفعيل' : 'إلغاء تفعيل'} الإشعار`
+      });
+
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error updating notification:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في تحديث الإشعار",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الإشعار بنجاح"
+      });
+
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في حذف الإشعار",
+        variant: "destructive"
+      });
     }
   };
 
@@ -865,7 +919,14 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+          </TabsContent>
+
+          {/* Notifications Management Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationsManagement />
+          </TabsContent>
+
+          <TabsContent value="admins" className="space-y-6">
               <Card className="shadow-elegant border-border/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -996,6 +1057,7 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
 
             <TabsContent value="services" className="space-y-6">
               <Card className="shadow-elegant border-border/50">
