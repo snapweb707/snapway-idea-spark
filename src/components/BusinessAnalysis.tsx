@@ -85,8 +85,19 @@ const BusinessAnalysis = () => {
         }
       });
 
-      console.log('Edge function response:', data);
+      console.log('Edge function response:', { data, error });
       
+      // التحقق من وجود خطأ في الاستدعاء نفسه
+      if (error) {
+        throw new Error(`خطأ في استدعاء الخدمة: ${error.message}`);
+      }
+
+      // التحقق من وجود البيانات
+      if (!data) {
+        throw new Error('لم يتم الحصول على استجابة من الخدمة');
+      }
+
+      // التحقق من وجود خطأ في البيانات المُرجعة
       if (data.error) {
         throw new Error(data.error);
       }
@@ -95,20 +106,24 @@ const BusinessAnalysis = () => {
         console.log('Analysis received:', data.analysis);
         setAnalysis(data.analysis);
         
-        // إذا كان التحليل تفاعلي، ابدأ الوضع التفاعلي
+        // إذا كان التحليل تفاعلي، ابدأ الوضع التفاعلي فوراً
         if (analysisType === 'interactive' && data.analysis.interactive_questions?.length > 0) {
-          setIsInteractiveMode(true);
-          setCurrentQuestionIndex(0);
-          setUserAnswers([]);
+          setTimeout(() => {
+            setIsInteractiveMode(true);
+            setCurrentQuestionIndex(0);
+            setUserAnswers([]);
+          }, 1000); // انتظار ثانية واحدة لإظهار النتائج أولاً
         }
         
         toast({
           title: "تم التحليل بنجاح",
-          description: "تم إجراء التحليل بنجاح وإنشاء التوصيات",
+          description: analysisType === 'interactive' ? 
+            "تم إجراء التحليل بنجاح. سيبدأ الوضع التفاعلي قريباً" : 
+            "تم إجراء التحليل بنجاح وإنشاء التوصيات",
         });
       } else {
         console.error('Invalid response data:', data);
-        throw new Error('لم يتم الحصول على نتائج التحليل');
+        throw new Error('لم يتم الحصول على نتائج التحليل صحيحة');
       }
     } catch (error) {
       console.error('Analysis error:', error);
@@ -137,7 +152,7 @@ const BusinessAnalysis = () => {
     setUserAnswers(newAnswers);
 
     try {
-      const { data } = await supabase.functions.invoke('analyze-idea', {
+      const { data, error } = await supabase.functions.invoke('analyze-idea', {
         body: {
           idea,
           analysisType: 'interactive_update',
@@ -149,6 +164,19 @@ const BusinessAnalysis = () => {
         }
       });
 
+      // التحقق من الخطأ بأمان
+      if (error) {
+        throw new Error(`خطأ في الاستدعاء: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('لم يتم الحصول على استجابة');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       if (data && data.analysis && data.success) {
         setAnalysis(data.analysis);
         
@@ -156,19 +184,25 @@ const BusinessAnalysis = () => {
         if (currentQuestionIndex < (analysis?.interactive_questions?.length || 0) - 1) {
           setCurrentQuestionIndex(currentQuestionIndex + 1);
           setCurrentAnswer("");
+          toast({
+            title: "تم التحديث",
+            description: `تم تحديث التحليل. السؤال ${currentQuestionIndex + 2} من ${analysis?.interactive_questions?.length}`,
+          });
         } else {
           setIsInteractiveMode(false);
           toast({
-            title: "تم التحديث",
-            description: "تم تحديث التحليل بناءً على إجاباتك",
+            title: "انتهى التحليل التفاعلي",
+            description: "تم تحديث التحليل النهائي بناءً على جميع إجاباتك",
           });
         }
+      } else {
+        throw new Error('استجابة غير صحيحة من الخدمة');
       }
     } catch (error) {
       console.error('Update error:', error);
       toast({
         title: "خطأ في التحديث",
-        description: "حدث خطأ أثناء تحديث التحليل",
+        description: error instanceof Error ? error.message : "حدث خطأ أثناء تحديث التحليل",
         variant: "destructive",
       });
     } finally {
@@ -510,18 +544,28 @@ const BusinessAnalysis = () => {
                     </div>
                   ))}
                 </div>
-                {analysisType === 'interactive' && (
+                {analysisType === 'interactive' && !isInteractiveMode && (
                   <Button
                     onClick={() => {
                       setIsInteractiveMode(true);
                       setCurrentQuestionIndex(0);
+                      setCurrentAnswer("");
+                      setUserAnswers([]);
                     }}
                     className="w-full mt-4"
-                    variant="outline"
+                    variant="default"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    ابدأ الإجابة على الأسئلة
+                    ابدأ الإجابة على الأسئلة التفاعلية
                   </Button>
+                )}
+                
+                {analysisType !== 'interactive' && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-700">
+                      💡 لتجربة تفاعلية أكثر، اختر "التحليل التفاعلي" واحصل على أسئلة مخصصة لتطوير فكرتك
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -529,48 +573,91 @@ const BusinessAnalysis = () => {
 
           {/* واجهة الأسئلة التفاعلية */}
           {isInteractiveMode && analysis?.interactive_questions && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader>
+            <Card className="border-primary bg-gradient-to-r from-primary/5 to-primary/10 shadow-lg">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-primary" />
-                    السؤال {currentQuestionIndex + 1} من {analysis.interactive_questions.length}
+                    <span>السؤال {currentQuestionIndex + 1} من {analysis.interactive_questions.length}</span>
                   </div>
-                  <Badge variant="secondary">
-                    {Math.round(((currentQuestionIndex + 1) / analysis.interactive_questions.length) * 100)}%
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-primary/20 text-primary">
+                      {Math.round(((currentQuestionIndex + 1) / analysis.interactive_questions.length) * 100)}%
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsInteractiveMode(false);
+                        setCurrentAnswer("");
+                      }}
+                    >
+                      إغلاق
+                    </Button>
+                  </div>
                 </CardTitle>
+                
+                {/* شريط التقدم */}
+                <div className="w-full bg-background rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${((currentQuestionIndex + 1) / analysis.interactive_questions.length) * 100}%` 
+                    }}
+                  />
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-background rounded-lg border">
-                  <p className="font-medium text-lg mb-2">
-                    {analysis.interactive_questions[currentQuestionIndex]}
-                  </p>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-background rounded-lg border-l-4 border-l-primary">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold mt-1">
+                      {currentQuestionIndex + 1}
+                    </div>
+                    <p className="font-medium text-lg leading-relaxed">
+                      {analysis.interactive_questions[currentQuestionIndex]}
+                    </p>
+                  </div>
                 </div>
                 
-                <Textarea
-                  placeholder="اكتب إجابتك هنا بالتفصيل..."
-                  value={currentAnswer}
-                  onChange={(e) => setCurrentAnswer(e.target.value)}
-                  className="min-h-[100px] resize-none"
-                  dir="rtl"
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    إجابتك (كن مفصلاً للحصول على تحليل أفضل)
+                  </label>
+                  <Textarea
+                    placeholder="اكتب إجابتك هنا بالتفصيل... كلما كانت إجابتك أكثر تفصيلاً، كان التحليل أدق وأفضل"
+                    value={currentAnswer}
+                    onChange={(e) => setCurrentAnswer(e.target.value)}
+                    className="min-h-[120px] resize-none"
+                    dir="rtl"
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    {currentAnswer.length} حرف - يُنصح بكتابة 50 حرف على الأقل
+                  </div>
+                </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Button
                     onClick={submitAnswer}
                     disabled={isUpdatingAnalysis || !currentAnswer.trim()}
                     className="flex-1"
+                    size="lg"
                   >
                     {isUpdatingAnalysis ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        جاري التحديث...
+                        جاري تحديث التحليل...
                       </>
                     ) : currentQuestionIndex < analysis.interactive_questions.length - 1 ? (
-                      'التالي'
+                      <>
+                        التالي ←
+                        <span className="text-xs mr-2">
+                          (سؤال {currentQuestionIndex + 2})
+                        </span>
+                      </>
                     ) : (
-                      'إنهاء التحليل'
+                      <>
+                        إنهاء التحليل التفاعلي ✨
+                      </>
                     )}
                   </Button>
                   
@@ -583,16 +670,17 @@ const BusinessAnalysis = () => {
                       }}
                       disabled={isUpdatingAnalysis}
                     >
-                      السابق
+                      ← السابق
                     </Button>
                   )}
                 </div>
                 
-                {userAnswers.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    تم الإجابة على {userAnswers.length} من {analysis.interactive_questions.length} أسئلة
-                  </div>
-                )}
+                <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                  <span>تم الإجابة على {userAnswers.length} من {analysis.interactive_questions.length} أسئلة</span>
+                  <span className="text-primary font-medium">
+                    متبقي {analysis.interactive_questions.length - currentQuestionIndex - 1} أسئلة
+                  </span>
+                </div>
               </CardContent>
             </Card>
           )}
