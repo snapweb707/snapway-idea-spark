@@ -18,6 +18,7 @@ serve(async (req) => {
       idea, 
       analysisType = 'basic', 
       userId,
+      language = 'ar',
       currentQuestion,
       userAnswer,
       allAnswers = [],
@@ -75,23 +76,57 @@ serve(async (req) => {
 
     switch (analysisType) {
       case 'interactive':
-        systemPrompt = `أنت محلل أعمال تفاعلي خبير ومتخصص. قم بتحليل فكرة المشروع التجاري وقدم تحليلاً تفاعلياً مفصلاً وشاملاً يتضمن أسئلة بسيطة وواضحة لمساعدة المستخدم على تطوير فكرته. ركز على الجوانب العملية والخطوات القابلة للتنفيذ مع خطة مرحلية واضحة.`;
-        jsonFormat = `{
+        if (language === 'en') {
+          systemPrompt = `You are an expert interactive business analyst. Analyze the business idea and provide a detailed interactive analysis with simple and clear questions to help the user develop their idea. Focus on practical aspects and actionable steps with a clear phased plan.`;
+          jsonFormat = `{
+  "overall_score": [number from 0 to 100],
+  "market_potential": [number from 0 to 100], 
+  "feasibility": [number from 0 to 100],
+  "risk_level": [number from 0 to 100],
+  "strengths": ["detailed strength 1", "detailed strength 2", "detailed strength 3", "detailed strength 4"],
+  "weaknesses": ["detailed weakness 1", "detailed weakness 2", "detailed weakness 3"],
+  "recommendations": ["detailed recommendation 1", "detailed recommendation 2", "detailed recommendation 3", "detailed recommendation 4"],
+  "market_size": "detailed analysis of market size with data and forecasts",
+  "target_audience": "detailed analysis of target audience with demographic segmentation",
+  "revenue_model": "detailed revenue model with multiple sources",
+  "competitive_advantage": "detailed competitive advantages",
+  "next_steps": {
+    "phase_1": ["phase 1 step 1", "phase 1 step 2", "phase 1 step 3"],
+    "phase_2": ["phase 2 step 1", "phase 2 step 2", "phase 2 step 3"],
+    "phase_3": ["phase 3 step 1", "phase 3 step 2"],
+    "timeline": "suggested timeline for phases (e.g., 3-6 months per phase)"
+  },
+  "interactive_questions": [
+    "detailed question about implementation strategy",
+    "question about precisely identifying target audience",
+    "question about funding and investment sources",
+    "question about expected challenges and solutions",
+    "question about required team"
+  ],
+  "action_plan": {
+    "immediate_steps": ["detailed immediate step 1", "detailed immediate step 2", "detailed immediate step 3"],
+    "short_term_goals": ["detailed short-term goal 1", "detailed short-term goal 2", "detailed short-term goal 3"],
+    "long_term_vision": "detailed long-term strategic vision for the project with growth expectations"
+  }
+}`;
+        } else {
+          systemPrompt = `أنت محلل أعمال تفاعلي خبير ومتخصص. قم بتحليل فكرة المشروع التجاري وقدم تحليلاً تفاعلياً مفصلاً وشاملاً يتضمن أسئلة بسيطة وواضحة لمساعدة المستخدم على تطوير فكرته. ركز على الجوانب العملية والخطوات القابلة للتنفيذ مع خطة مرحلية واضحة.`;
+          jsonFormat = `{
   "overall_score": [رقم من 0 إلى 100],
   "market_potential": [رقم من 0 إلى 100], 
   "feasibility": [رقم من 0 إلى 100],
   "risk_level": [رقم من 0 إلى 100],
-  "strengths": ["نقطة قوة 1", "نقطة قوة 2", "نقطة قوة 3", "نقطة قوة 4"],
-  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2", "نقطة ضعف 3"],
+  "strengths": ["نقطة قوة مفصلة 1", "نقطة قوة مفصلة 2", "نقطة قوة مفصلة 3", "نقطة قوة مفصلة 4"],
+  "weaknesses": ["نقطة ضعف مفصلة 1", "نقطة ضعف مفصلة 2", "نقطة ضعف مفصلة 3"],
   "recommendations": ["توصية مفصلة 1", "توصية مفصلة 2", "توصية مفصلة 3", "توصية مفصلة 4"],
   "market_size": "تحليل مفصل وشامل لحجم السوق مع بيانات وتوقعات",
   "target_audience": "تحليل مفصل للجمهور المستهدف مع تقسيمات ديموغرافية",
   "revenue_model": "نموذج إيرادات مفصل مع مصادر متعددة",
   "competitive_advantage": "المزايا التنافسية المحتملة بالتفصيل",
   "next_steps": {
-    "phase_1": ["خطوة مرحلة أولى 1", "خطوة مرحلة أولى 2", "خطوة مرحلة أولى 3"],
-    "phase_2": ["خطوة مرحلة ثانية 1", "خطوة مرحلة ثانية 2", "خطوة مرحلة ثانية 3"],
-    "phase_3": ["خطوة مرحلة ثالثة 1", "خطوة مرحلة ثالثة 2"],
+    "phase_1": ["خطوة مرحلة أولى مفصلة 1", "خطوة مرحلة أولى مفصلة 2", "خطوة مرحلة أولى مفصلة 3"],
+    "phase_2": ["خطوة مرحلة ثانية مفصلة 1", "خطوة مرحلة ثانية مفصلة 2", "خطوة مرحلة ثانية مفصلة 3"],
+    "phase_3": ["خطوة مرحلة ثالثة مفصلة 1", "خطوة مرحلة ثالثة مفصلة 2"],
     "timeline": "جدول زمني مقترح للمراحل (3-6 أشهر لكل مرحلة مثلاً)"
   },
   "interactive_questions": [
@@ -107,10 +142,51 @@ serve(async (req) => {
     "long_term_vision": "رؤية استراتيجية طويلة المدى مفصلة للمشروع مع توقعات النمو"
   }
 }`;
+        }
         break;
       case 'deep':
-        systemPrompt = `أنت محلل أعمال متقدم ومتخصص ذو خبرة عالية. قم بإجراء تحليل عميق ومفصل للغاية لفكرة المشروع التجاري يشمل تحليل السوق المتقدم مع بيانات، دراسة المنافسين التفصيلية، النمذجة المالية الشاملة، تحليل المخاطر التفصيلي، وخطة تنفيذ مرحلية واضحة.`;
-        jsonFormat = `{
+        if (language === 'en') {
+          systemPrompt = `You are an advanced business analyst with high expertise. Conduct a comprehensive and detailed analysis of the business idea including advanced market analysis with data, detailed competitor research, comprehensive financial modeling, detailed risk analysis, and a clear phased implementation plan.`;
+          jsonFormat = `{
+  "overall_score": [number from 0 to 100],
+  "market_potential": [number from 0 to 100], 
+  "feasibility": [number from 0 to 100],
+  "risk_level": [number from 0 to 100],
+  "strengths": ["detailed strength 1", "detailed strength 2", "detailed strength 3", "detailed strength 4", "detailed strength 5"],
+  "weaknesses": ["detailed weakness 1", "detailed weakness 2", "detailed weakness 3", "detailed weakness 4"],
+  "recommendations": ["strategic detailed recommendation 1", "operational detailed recommendation 2", "financial detailed recommendation 3", "marketing detailed recommendation 4", "technical detailed recommendation 5"],
+  "market_size": "extremely detailed market size analysis with numbers, statistics, growth trends and future forecasts",
+  "target_audience": "comprehensive and detailed target audience analysis with demographic, psychographic and behavioral segmentation",
+  "revenue_model": "detailed multi-source revenue model with numerical projections and different scenarios",
+  "competitive_advantage": "comprehensive detailed analysis of competitive advantages with strategies to maintain them",
+  "next_steps": {
+    "phase_1": ["detailed phase 1 step 1", "detailed phase 1 step 2", "detailed phase 1 step 3", "detailed phase 1 step 4"],
+    "phase_2": ["detailed phase 2 step 1", "detailed phase 2 step 2", "detailed phase 2 step 3", "detailed phase 2 step 4"],
+    "phase_3": ["detailed phase 3 step 1", "detailed phase 3 step 2", "detailed phase 3 step 3"],
+    "timeline": "detailed and specific timeline for phases with clear milestones and performance indicators"
+  },
+  "financial_analysis": {
+    "startup_cost": "detailed and accurate analysis of initial costs with breakdown of each item",
+    "monthly_expenses": "comprehensive estimate of monthly operational and administrative costs",
+    "break_even_time": "accurate estimate of break-even period with sensitivity analysis",
+    "roi_projection": "detailed return on investment projection over different time periods",
+    "funding_requirements": "detailed analysis of funding needs and potential sources"
+  },
+  "competitive_analysis": {
+    "main_competitors": ["main competitor 1 with analysis", "main competitor 2 with analysis", "main competitor 3 with analysis", "main competitor 4 with analysis"],
+    "market_differentiation": "detailed strategy for market differentiation with core difference points",
+    "barrier_to_entry": "comprehensive analysis of market entry challenges and barriers and how to overcome them",
+    "swot_analysis": "detailed SWOT analysis of the project compared to competitors"
+  },
+  "action_plan": {
+    "immediate_steps": ["strategic immediate step 1", "operational immediate step 2", "financial immediate step 3", "marketing immediate step 4"],
+    "short_term_goals": ["specific short-term goal 1", "specific short-term goal 2", "specific short-term goal 3"],
+    "long_term_vision": "comprehensive strategic long-term vision with roadmap for growth and expansion"
+  }
+}`;
+        } else {
+          systemPrompt = `أنت محلل أعمال متقدم ومتخصص ذو خبرة عالية. قم بإجراء تحليل عميق ومفصل للغاية لفكرة المشروع التجاري يشمل تحليل السوق المتقدم مع بيانات، دراسة المنافسين التفصيلية، النمذجة المالية الشاملة، تحليل المخاطر التفصيلي، وخطة تنفيذ مرحلية واضحة.`;
+          jsonFormat = `{
   "overall_score": [رقم من 0 إلى 100],
   "market_potential": [رقم من 0 إلى 100], 
   "feasibility": [رقم من 0 إلى 100],
@@ -147,10 +223,33 @@ serve(async (req) => {
     "long_term_vision": "رؤية استراتيجية شاملة وطويلة المدى مع خارطة طريق للنمو والتوسع"
   }
 }`;
+        }
         break;
       default:
-        systemPrompt = `أنت محلل أعمال خبير ومحترف. قم بتحليل فكرة المشروع التجاري وقدم تقييماً شاملاً وسريعاً مع توصيات عملية وخطوات تنفيذية واضحة.`;
-        jsonFormat = `{
+        if (language === 'en') {
+          systemPrompt = `You are an expert professional business analyst. Analyze the business idea and provide a comprehensive and quick assessment with practical recommendations and clear implementation steps.`;
+          jsonFormat = `{
+  "overall_score": [number from 0 to 100],
+  "market_potential": [number from 0 to 100], 
+  "feasibility": [number from 0 to 100],
+  "risk_level": [number from 0 to 100],
+  "strengths": ["detailed strength 1", "detailed strength 2", "detailed strength 3", "detailed strength 4"],
+  "weaknesses": ["detailed weakness 1", "detailed weakness 2", "detailed weakness 3"],
+  "recommendations": ["detailed practical recommendation 1", "detailed practical recommendation 2", "detailed practical recommendation 3", "detailed practical recommendation 4"],
+  "market_size": "detailed market size analysis with data and forecasts",
+  "target_audience": "detailed target audience analysis with clear characteristics",
+  "revenue_model": "suggested revenue model with multiple sources",
+  "competitive_advantage": "detailed competitive advantages",
+  "next_steps": {
+    "phase_1": ["phase 1 step 1", "phase 1 step 2", "phase 1 step 3"],
+    "phase_2": ["phase 2 step 1", "phase 2 step 2", "phase 2 step 3"],
+    "phase_3": ["phase 3 step 1", "phase 3 step 2"],
+    "timeline": "suggested timeline for phases"
+  }
+}`;
+        } else {
+          systemPrompt = `أنت محلل أعمال خبير ومحترف. قم بتحليل فكرة المشروع التجاري وقدم تقييماً شاملاً وسريعاً مع توصيات عملية وخطوات تنفيذية واضحة.`;
+          jsonFormat = `{
   "overall_score": [رقم من 0 إلى 100],
   "market_potential": [رقم من 0 إلى 100], 
   "feasibility": [رقم من 0 إلى 100],
@@ -169,15 +268,28 @@ serve(async (req) => {
     "timeline": "جدول زمني مقترح للمراحل"
   }
 }`;
+        }
     }
 
     const fullPrompt = `${systemPrompt}
 
-قم بتحليل فكرة المشروع وإرجاع النتائج بصيغة JSON صحيحة فقط. استخدم هذا التنسيق بالضبط:
+${language === 'en' ? 
+  'Analyze the project idea and return results in valid JSON format only. Use this exact format:' :
+  'قم بتحليل فكرة المشروع وإرجاع النتائج بصيغة JSON صحيحة فقط. استخدم هذا التنسيق بالضبط:'
+}
 
 ${jsonFormat}
 
-تعليمات مهمة:
+${language === 'en' ? `Important instructions:
+- Make all percentages realistic and logical (don't be overly optimistic)
+- Most new ideas get 40-70% scores initially
+- Be honest in evaluation and show real challenges
+- Make all interactive questions simple and direct
+- Focus on practical and actionable aspects
+- Use clear and simple English
+- Don't add any text before or after JSON
+- Return JSON only` :
+`تعليمات مهمة:
 - أجعل كل النسب واقعية ومنطقية (لا تكن متفائلاً بشكل مفرط)
 - معظم الأفكار الجديدة تحصل على نسب 40-70% في البداية
 - كن صادقاً في التقييم وأظهر التحديات الحقيقية
@@ -185,7 +297,7 @@ ${jsonFormat}
 - ركز على الجوانب العملية والقابلة للتنفيذ
 - استخدم اللغة العربية البسيطة والواضحة
 - لا تضيف أي نص قبل أو بعد JSON
-- أرجع JSON فقط`;
+- أرجع JSON فقط`}`;
 
     console.log('Starting analysis with model:', modelToUse);
     
@@ -204,7 +316,9 @@ ${jsonFormat}
           },
           {
             role: "user",
-            content: `حلل فكرة المشروع التالية: ${idea}`
+            content: language === 'en' ? 
+              `Analyze the following project idea: ${idea}` :
+              `حلل فكرة المشروع التالية: ${idea}`
           }
         ],
         temperature: 0.5,
@@ -353,11 +467,11 @@ ${jsonFormat}
         await supabase
           .from('analysis_history')
           .insert({
-            user_id: userId,
-            idea_text: idea,
-            analysis_result: analysis,
-            analysis_type: analysisType,
-            language: 'ar'
+          user_id: userId,
+          idea_text: idea,
+          analysis_result: analysis,
+          analysis_type: analysisType,
+          language: language || 'ar'
           });
       }
     } catch (dbError) {

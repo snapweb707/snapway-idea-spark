@@ -12,6 +12,7 @@ import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCir
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import AnalysisProgress from "./AnalysisProgress";
+import { useTranslation } from 'react-i18next';
 
 interface AnalysisResult {
   overall_score: number;
@@ -64,12 +65,13 @@ const BusinessAnalysis = () => {
   const [isUpdatingAnalysis, setIsUpdatingAnalysis] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const analyzeIdea = async () => {
     if (!user) {
       toast({
-        title: "تسجيل الدخول مطلوب",
-        description: "يجب تسجيل الدخول أولاً لاستخدام التحليل",
+        title: t('loginRequired'),
+        description: t('loginRequired'),
         variant: "destructive",
       });
       return;
@@ -77,7 +79,7 @@ const BusinessAnalysis = () => {
 
     if (!idea.trim()) {
       toast({
-        title: "خطأ",
+        title: t('analysisError'),
         description: "يرجى إدخال فكرة المشروع",
         variant: "destructive",
       });
@@ -91,7 +93,8 @@ const BusinessAnalysis = () => {
         body: {
           idea,
           analysisType,
-          userId: user.id
+          userId: user.id,
+          language: i18n.language
         }
       });
 
@@ -126,7 +129,7 @@ const BusinessAnalysis = () => {
         }
         
         toast({
-          title: "تم التحليل بنجاح",
+          title: t('analysisSuccess'),
           description: analysisType === 'interactive' ? 
             "تم إجراء التحليل بنجاح. سيبدأ الوضع التفاعلي قريباً" : 
             "تم إجراء التحليل بنجاح وإنشاء التوصيات",
@@ -138,7 +141,7 @@ const BusinessAnalysis = () => {
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
-        title: "خطأ في التحليل",
+        title: t('analysisError'),
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
         variant: "destructive",
       });
@@ -244,9 +247,9 @@ const BusinessAnalysis = () => {
 
   const getAnalysisTypeName = (type: string) => {
     switch (type) {
-      case 'interactive': return 'التحليل التفاعلي';
-      case 'deep': return 'التحليل العميق';
-      default: return 'التحليل الأساسي';
+      case 'interactive': return t('interactiveAnalysis');
+      case 'deep': return t('deepAnalysis');
+      default: return t('basicAnalysis');
     }
   };
 
@@ -420,13 +423,13 @@ const BusinessAnalysis = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <BarChart3 className="w-6 h-6 text-primary" />
-            تحليل فكرة المشروع
+            {t('businessAnalysis')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">
-              نوع التحليل
+              {t('analysisType')}
             </label>
             <Select value={analysisType} onValueChange={setAnalysisType}>
               <SelectTrigger>
@@ -434,22 +437,22 @@ const BusinessAnalysis = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="basic">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    تحليل أساسي - سريع وشامل
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      {t('basicAnalysis')}
+                    </div>
                 </SelectItem>
                 <SelectItem value="interactive">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    تحليل تفاعلي - مع أسئلة إضافية
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      {t('interactiveAnalysis')}
+                    </div>
                 </SelectItem>
                 <SelectItem value="deep">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    تحليل عميق - تفصيلي ومتقدم
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      {t('deepAnalysis')}
+                    </div>
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -457,10 +460,10 @@ const BusinessAnalysis = () => {
           
           <div>
             <label className="text-sm font-medium mb-2 block">
-              اشرح فكرة مشروعك بالتفصيل
+              {t('ideaPlaceholder')}
             </label>
             <Textarea
-              placeholder="مثال: أريد إنشاء منصة إلكترونية لتوصيل الطعام المحلي في المدينة، تركز على المطاعم الصغيرة والوجبات المنزلية..."
+              placeholder={t('ideaPlaceholder')}
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               className="min-h-[120px] resize-none"
@@ -472,7 +475,7 @@ const BusinessAnalysis = () => {
             <Link to="/auth">
               <Button variant="hero" size="lg" className="w-full">
                 <LogIn className="w-4 h-4" />
-                سجل الدخول لبدء التحليل
+                {t('signIn')}
               </Button>
             </Link>
           ) : (
@@ -486,12 +489,12 @@ const BusinessAnalysis = () => {
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  جاري {getAnalysisTypeName(analysisType)}...
+                  {t('analyzing')}
                 </>
               ) : (
                 <>
                   <TrendingUp className="w-4 h-4" />
-                  بدء {getAnalysisTypeName(analysisType)}
+                  {t('startAnalysis')}
                 </>
               )}
             </Button>
@@ -517,7 +520,7 @@ const BusinessAnalysis = () => {
                 <div className={`text-3xl font-bold ${getScoreColor(analysis.overall_score)}`}>
                   {analysis.overall_score}%
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">التقييم العام</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('overallScore')}</p>
               </CardContent>
             </Card>
             
@@ -526,7 +529,7 @@ const BusinessAnalysis = () => {
                 <div className={`text-3xl font-bold ${getScoreColor(analysis.market_potential)}`}>
                   {analysis.market_potential}%
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">إمكانية السوق</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('marketPotential')}</p>
               </CardContent>
             </Card>
             
@@ -535,7 +538,7 @@ const BusinessAnalysis = () => {
                 <div className={`text-3xl font-bold ${getScoreColor(analysis.feasibility)}`}>
                   {analysis.feasibility}%
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">قابلية التنفيذ</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('feasibility')}</p>
               </CardContent>
             </Card>
             
@@ -544,7 +547,7 @@ const BusinessAnalysis = () => {
                 <div className={`text-3xl font-bold ${getScoreColor(100 - analysis.risk_level)}`}>
                   {analysis.risk_level}%
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">مستوى المخاطر</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('riskLevel')}</p>
               </CardContent>
             </Card>
           </div>
@@ -555,7 +558,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-green-600">
                   <CheckCircle className="w-5 h-5" />
-                  نقاط القوة
+                  {t('strengths')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -574,7 +577,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-600">
                   <AlertTriangle className="w-5 h-5" />
-                  نقاط الضعف
+                  {t('weaknesses')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -596,7 +599,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  الجمهور المستهدف
+                  {t('targetAudience')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -608,7 +611,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-primary" />
-                  حجم السوق
+                  {t('marketSize')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -620,7 +623,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-primary" />
-                  نموذج الإيرادات
+                  {t('revenueModel')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -632,7 +635,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  الميزة التنافسية
+                  {t('competitiveAdvantage')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -709,7 +712,7 @@ const BusinessAnalysis = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary" />
-                  الخطوات التالية لمشروعك
+                  {t('nextSteps')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -1017,15 +1020,15 @@ const BusinessAnalysis = () => {
           {/* زر تحميل PDF */}
           <Card>
             <CardContent className="pt-6">
-              <Button 
-                onClick={exportToPDF}
-                variant="outline"
-                size="lg"
-                className="w-full"
-              >
-                <Download className="w-4 h-4" />
-                تحميل التحليل كملف PDF
-              </Button>
+                <Button 
+                  onClick={exportToPDF}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  <Download className="w-4 h-4" />
+                  {t('downloadPDF')}
+                </Button>
             </CardContent>
           </Card>
         </div>
