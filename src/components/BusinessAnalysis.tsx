@@ -64,14 +64,24 @@ const BusinessAnalysis = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
-      setAnalysis(data.analysis);
-      toast({
-        title: "تم التحليل بنجاح",
-        description: `تم إجراء ${getAnalysisTypeName(analysisType)} بنجاح`,
-      });
+      if (data && data.analysis) {
+        console.log('Analysis received:', data.analysis);
+        setAnalysis(data.analysis);
+        toast({
+          title: "تم التحليل بنجاح",
+          description: "تم إجراء التحليل بنجاح وإنشاء التوصيات",
+        });
+      } else {
+        console.error('Invalid response data:', data);
+        throw new Error('لم يتم الحصول على نتائج التحليل');
+      }
     } catch (error) {
+      console.error('Analysis error:', error);
       toast({
         title: "خطأ في التحليل",
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
