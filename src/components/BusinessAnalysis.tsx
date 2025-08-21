@@ -63,6 +63,8 @@ const BusinessAnalysis = () => {
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [isInteractiveMode, setIsInteractiveMode] = useState(false);
   const [isUpdatingAnalysis, setIsUpdatingAnalysis] = useState(false);
+  const [marketingPlan, setMarketingPlan] = useState<any>(null);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
@@ -231,6 +233,62 @@ const BusinessAnalysis = () => {
       }
     } finally {
       setIsUpdatingAnalysis(false);
+    }
+  };
+
+  const generateMarketingPlan = async () => {
+    if (!user) {
+      toast({
+        title: t('loginRequired'),
+        description: t('loginRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!analysis) {
+      toast({
+        title: t('analysisError'),
+        description: i18n.language === 'ar' ? "يجب إجراء التحليل أولاً" : "Please run analysis first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingPlan(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-marketing-plan', {
+        body: {
+          idea,
+          analysis,
+          language: i18n.language,
+          userId: user.id
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data && data.plan && data.success) {
+        setMarketingPlan(data.plan);
+        toast({
+          title: i18n.language === 'ar' ? "تم إنشاء الخطة التسويقية" : "Marketing Plan Generated",
+          description: i18n.language === 'ar' ? "تم إنشاء خطة تسويقية شاملة لفكرتك" : "Comprehensive marketing plan created for your idea",
+        });
+      } else {
+        throw new Error(i18n.language === 'ar' ? 'فشل في إنشاء الخطة التسويقية' : 'Failed to generate marketing plan');
+      }
+    } catch (error) {
+      console.error('Marketing plan error:', error);
+      toast({
+        title: i18n.language === 'ar' ? "خطأ في إنشاء الخطة" : "Plan Generation Error",
+        description: error instanceof Error ? error.message : i18n.language === 'ar' ? "حدث خطأ غير متوقع" : "Unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPlan(false);
     }
   };
 
@@ -1039,6 +1097,175 @@ const BusinessAnalysis = () => {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Marketing Plan Section */}
+      {analysis && (
+        <Card className="shadow-elegant border-border/50 bg-gradient-glow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Target className="w-6 h-6 text-primary" />
+              {i18n.language === 'ar' ? 'الخطة التسويقية' : 'Marketing Plan'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!marketingPlan ? (
+              <div className="text-center py-8 space-y-4">
+                <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto">
+                  <Target className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {i18n.language === 'ar' ? 'إنشاء خطة تسويقية ذكية' : 'Generate Smart Marketing Plan'}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {i18n.language === 'ar' 
+                      ? 'احصل على خطة تسويقية شاملة ومخصصة لفكرة مشروعك باستخدام الذكاء الاصطناعي'
+                      : 'Get a comprehensive, customized marketing plan for your business idea using AI'
+                    }
+                  </p>
+                  <Button 
+                    onClick={generateMarketingPlan}
+                    disabled={isGeneratingPlan}
+                    className="group"
+                    size="lg"
+                  >
+                    {isGeneratingPlan ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {i18n.language === 'ar' ? 'جاري إنشاء الخطة...' : 'Generating Plan...'}
+                      </>
+                    ) : (
+                      <>
+                        <Target className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                        {i18n.language === 'ar' ? 'إنشاء خطة تسويقية' : 'Generate Marketing Plan'}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Marketing Strategy */}
+                {marketingPlan.strategy && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                      {i18n.language === 'ar' ? 'الاستراتيجية التسويقية' : 'Marketing Strategy'}
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.strategy}</p>
+                  </div>
+                )}
+
+                {/* Target Audience */}
+                {marketingPlan.target_audience && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-green-600" />
+                      {i18n.language === 'ar' ? 'الجمهور المستهدف' : 'Target Audience'}
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.target_audience}</p>
+                  </div>
+                )}
+
+                {/* Marketing Channels */}
+                {marketingPlan.channels && marketingPlan.channels.length > 0 && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-purple-600" />
+                      {i18n.language === 'ar' ? 'قنوات التسويق' : 'Marketing Channels'}
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {marketingPlan.channels.map((channel: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <span className="text-sm">{channel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Budget Plan */}
+                {marketingPlan.budget && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-yellow-600" />
+                      {i18n.language === 'ar' ? 'خطة الميزانية' : 'Budget Plan'}
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.budget}</p>
+                  </div>
+                )}
+
+                {/* Timeline */}
+                {marketingPlan.timeline && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-indigo-600" />
+                      {i18n.language === 'ar' ? 'الجدول الزمني' : 'Timeline'}
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">{marketingPlan.timeline}</p>
+                  </div>
+                )}
+
+                {/* KPIs */}
+                {marketingPlan.kpis && marketingPlan.kpis.length > 0 && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-orange-600" />
+                      {i18n.language === 'ar' ? 'مؤشرات الأداء الرئيسية' : 'Key Performance Indicators'}
+                    </h4>
+                    <div className="space-y-2">
+                      {marketingPlan.kpis.map((kpi: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground">{kpi}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Items */}
+                {marketingPlan.action_items && marketingPlan.action_items.length > 0 && (
+                  <div className="bg-background/50 rounded-xl p-6 border border-border/50">
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      {i18n.language === 'ar' ? 'الخطوات العملية' : 'Action Items'}
+                    </h4>
+                    <div className="space-y-3">
+                      {marketingPlan.action_items.map((item: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                          <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
+                            {index + 1}
+                          </span>
+                          <span className="text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setMarketingPlan(null)}
+                    className="flex-1"
+                  >
+                    {i18n.language === 'ar' ? 'إنشاء خطة جديدة' : 'Generate New Plan'}
+                  </Button>
+                  <Button 
+                    onClick={generateMarketingPlan}
+                    disabled={isGeneratingPlan}
+                    className="flex-1"
+                  >
+                    {i18n.language === 'ar' ? 'تحديث الخطة' : 'Update Plan'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
