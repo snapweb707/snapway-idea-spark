@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, Brain, Zap, Settings, Package, LogOut, User, LogIn, Shield } from "lucide-react";
+import { Menu, Brain, Zap, Settings, Package, LogOut, User, LogIn, Shield, History } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
@@ -94,6 +94,13 @@ const Header = () => {
                       <span className="text-sm">{user.email}</span>
                     </div>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/history" className="flex items-center gap-2 w-full">
+                      <History className="w-4 h-4" />
+                      تاريخ التحليلات
+                    </Link>
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
@@ -169,6 +176,15 @@ const Header = () => {
                           <User className="w-4 h-4" />
                           {user.email}
                         </div>
+                        <Link to="/history" onClick={() => setIsOpen(false)}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                          >
+                            <History className="w-4 h-4 mr-2" />
+                            تاريخ التحليلات
+                          </Button>
+                        </Link>
                         <Button
                           variant="ghost"
                           onClick={handleSignOut}
