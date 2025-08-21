@@ -109,27 +109,77 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error("استجابة غير صحيحة من الذكاء الاصطناعي");
+    }
+    
     const analysisText = data.choices[0].message.content;
+    console.log('Raw AI response:', analysisText);
     
     let analysis;
     try {
       // Try to parse the JSON response
       analysis = JSON.parse(analysisText);
+      
+      // Validate that the analysis has required fields
+      if (!analysis.overall_score || !analysis.strengths || !analysis.recommendations) {
+        throw new Error("التحليل لا يحتوي على البيانات المطلوبة");
+      }
+      
     } catch (parseError) {
-      // If parsing fails, create a basic analysis structure
-      analysis = {
-        overall_score: 75,
-        market_potential: 70,
-        feasibility: 80,
-        risk_level: 40,
-        strengths: ["فكرة مبتكرة", "سوق واعد"],
-        weaknesses: ["يحتاج دراسة أعمق", "منافسة قوية"],
-        recommendations: ["إجراء بحث سوق", "تطوير نموذج أولي"],
-        market_size: "سوق متوسط الحجم",
-        target_audience: "الجمهور العام",
-        revenue_model: "نموذج اشتراك أو مبيعات مباشرة",
-        competitive_advantage: "خدمة مبتكرة"
-      };
+      console.error('JSON parsing failed:', parseError);
+      console.log('Raw response that failed to parse:', analysisText);
+      
+      // If JSON parsing fails, try to get another response with more explicit instructions
+      const retryResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openRouterKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: modelToUse,
+          messages: [
+            {
+              role: "system",
+              content: `أنت محلل أعمال خبير. قم بتحليل فكرة المشروع واستجب بصيغة JSON صحيحة فقط بدون أي نص إضافي. استخدم هذا التنسيق بالضبط:
+{
+  "overall_score": 85,
+  "market_potential": 80,
+  "feasibility": 75,
+  "risk_level": 30,
+  "strengths": ["نقطة قوة 1", "نقطة قوة 2"],
+  "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2"],
+  "recommendations": ["توصية 1", "توصية 2"],
+  "market_size": "وصف حجم السوق",
+  "target_audience": "وصف الجمهور المستهدف",
+  "revenue_model": "نموذج الإيرادات المقترح",
+  "competitive_advantage": "المزايا التنافسية المحتملة"
+}`
+            },
+            {
+              role: "user",
+              content: `حلل فكرة المشروع التالية واستجب بـ JSON صحيح فقط: ${idea}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000,
+        }),
+      });
+      
+      if (retryResponse.ok) {
+        const retryData = await retryResponse.json();
+        const retryText = retryData.choices[0].message.content;
+        
+        try {
+          analysis = JSON.parse(retryText);
+        } catch (retryParseError) {
+          throw new Error("فشل في الحصول على تحليل صحيح من الذكاء الاصطناعي");
+        }
+      } else {
+        throw new Error("فشل في إعادة محاولة التحليل");
+      }
     }
 
     // Save the analysis to database
