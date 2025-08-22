@@ -122,12 +122,12 @@ const Services = () => {
                       </ul>
                     )}
                     
-                    <Link to="/">
+                    <Link to="/contact">
                       <Button 
                         className="w-full group" 
                         variant={isPopular ? "default" : "outline"}
                         >
-                        {t('services.startAnalysis')}
+                        طلب الخدمة
                         <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </Link>
@@ -152,9 +152,9 @@ const Services = () => {
                   {t('services.cta.contact')}
                 </Button>
               </Link>
-              <Link to="/">
+              <Link to="/contact">
                 <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  {t('services.cta.startFree')}
+                  تقديم طلب خدمة
                 </Button>
               </Link>
             </div>
