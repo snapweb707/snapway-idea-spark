@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Facebook, Twitter, Ins
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,8 @@ const Contact = () => {
     name: "",
     email: "",
     subject: "",
-    message: ""
+    message: "",
+    message_type: "general"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contactSettings, setContactSettings] = useState<{[key: string]: string}>({});
@@ -33,7 +35,8 @@ const Contact = () => {
             name: formData.name,
             email: formData.email,
             subject: formData.subject,
-            message: formData.message
+            message: formData.message,
+            message_type: formData.message_type
           }
         ]);
 
@@ -43,7 +46,7 @@ const Contact = () => {
         title: t('contact.form.success'),
         description: t('contact.form.successDesc'),
       });
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "", message_type: "general" });
     } catch (error) {
       console.error('Error submitting contact form:', error);
       toast({
@@ -60,6 +63,13 @@ const Contact = () => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      message_type: value
     }));
   };
 
@@ -218,6 +228,21 @@ const Contact = () => {
                       required
                       className="bg-background/50"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">نوع الرسالة</label>
+                    <Select value={formData.message_type} onValueChange={handleSelectChange}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue placeholder="اختر نوع الرسالة" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">رسالة عامة</SelectItem>
+                        <SelectItem value="service_request">طلب خدمة</SelectItem>
+                        <SelectItem value="support">دعم فني</SelectItem>
+                        <SelectItem value="complaint">شكوى</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>

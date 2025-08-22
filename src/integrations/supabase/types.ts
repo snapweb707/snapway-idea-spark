@@ -130,6 +130,7 @@ export type Database = {
           email: string
           id: string
           message: string
+          message_type: string | null
           name: string
           status: string | null
           subject: string
@@ -140,6 +141,7 @@ export type Database = {
           email: string
           id?: string
           message: string
+          message_type?: string | null
           name: string
           status?: string | null
           subject: string
@@ -150,6 +152,7 @@ export type Database = {
           email?: string
           id?: string
           message?: string
+          message_type?: string | null
           name?: string
           status?: string | null
           subject?: string

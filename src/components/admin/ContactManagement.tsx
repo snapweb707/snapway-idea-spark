@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Phone, MapPin, Clock, MessageSquare, Settings, Eye, CheckCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, MessageSquare, Settings, Eye, CheckCircle, Filter } from "lucide-react";
 
 interface ContactMessage {
   id: string;
@@ -18,6 +19,7 @@ interface ContactMessage {
   subject: string;
   message: string;
   status: string;
+  message_type: string;
   created_at: string;
 }
 
@@ -34,6 +36,7 @@ export const ContactManagement = () => {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [editedSettings, setEditedSettings] = useState<{[key: string]: string}>({});
+  const [selectedType, setSelectedType] = useState<string>('all');
 
   useEffect(() => {
     fetchContactData();
@@ -144,7 +147,24 @@ export const ContactManagement = () => {
     return <Badge variant="secondary">جديدة</Badge>;
   };
 
-  const unreadCount = messages.filter(msg => msg.status === 'unread').length;
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'service_request':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">طلب خدمة</Badge>;
+      case 'support':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">دعم فني</Badge>;
+      case 'complaint':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">شكوى</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">عام</Badge>;
+    }
+  };
+
+  const filteredMessages = selectedType === 'all' 
+    ? messages 
+    : messages.filter(msg => msg.message_type === selectedType);
+
+  const unreadCount = filteredMessages.filter(msg => msg.status === 'unread').length;
 
   if (loading) {
     return (
@@ -373,16 +393,33 @@ export const ContactManagement = () => {
       {/* Contact Messages */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-primary" />
-            <div>
-              <CardTitle>رسائل التواصل ({messages.length})</CardTitle>
-              <CardDescription>
-                عرض وإدارة رسائل التواصل الواردة
-                {unreadCount > 0 && (
-                  <span className="text-red-600 font-medium"> - {unreadCount} رسالة جديدة</span>
-                )}
-              </CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <div>
+                <CardTitle>رسائل التواصل ({filteredMessages.length})</CardTitle>
+                <CardDescription>
+                  عرض وإدارة رسائل التواصل الواردة
+                  {unreadCount > 0 && (
+                    <span className="text-red-600 font-medium"> - {unreadCount} رسالة جديدة</span>
+                  )}
+                </CardDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="اختر التصنيف" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الرسائل</SelectItem>
+                  <SelectItem value="general">عام</SelectItem>
+                  <SelectItem value="service_request">طلبات الخدمة</SelectItem>
+                  <SelectItem value="support">دعم فني</SelectItem>
+                  <SelectItem value="complaint">شكاوى</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -394,17 +431,19 @@ export const ContactManagement = () => {
                   <TableHead>الاسم</TableHead>
                   <TableHead>البريد الإلكتروني</TableHead>
                   <TableHead>الموضوع</TableHead>
+                  <TableHead>التصنيف</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead>التاريخ</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {messages.map((message) => (
+                {filteredMessages.map((message) => (
                   <TableRow key={message.id} className={message.status === 'unread' ? 'bg-muted/50' : ''}>
                     <TableCell className="font-medium">{message.name}</TableCell>
                     <TableCell>{message.email}</TableCell>
                     <TableCell className="max-w-xs truncate">{message.subject}</TableCell>
+                    <TableCell>{getTypeBadge(message.message_type || 'general')}</TableCell>
                     <TableCell>{getStatusBadge(message.status)}</TableCell>
                     <TableCell>
                       {new Date(message.created_at).toLocaleDateString('ar-SA')}
@@ -468,9 +507,9 @@ export const ContactManagement = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {messages.length === 0 && (
+                {filteredMessages.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       لا توجد رسائل تواصل حتى الآن
                     </TableCell>
                   </TableRow>
