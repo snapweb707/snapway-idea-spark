@@ -43,6 +43,7 @@ const Admin = () => {
     price: "",
     features: "",
     icon: "BarChart3",
+    service_type: "general",
     is_free: false
   });
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -553,6 +554,7 @@ const Admin = () => {
         price: "",
         features: "",
         icon: "BarChart3",
+        service_type: "general",
         is_free: false
       });
       setEditingService(null);
@@ -597,6 +599,7 @@ const Admin = () => {
       price: service.price?.toString() || "",
       features: service.features ? JSON.stringify(service.features, null, 2) : "",
       icon: service.icon || "BarChart3",
+      service_type: service.service_type || "general",
       is_free: service.is_free || false
     });
     setEditingService(service);
@@ -716,6 +719,21 @@ const Admin = () => {
       case 'Target': return <Target className="w-4 h-4" />;
       case 'TrendingUp': return <TrendingUp className="w-4 h-4" />;
       default: return <Settings className="w-4 h-4" />;
+    }
+  };
+
+  const getServiceTypeBadge = (type: string) => {
+    switch (type) {
+      case 'consultation':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">استشارة</Badge>;
+      case 'technical_support':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">دعم فني</Badge>;
+      case 'business_plan':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">خطة عمل</Badge>;
+      case 'idea_protection':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">حماية فكرة</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">عام</Badge>;
     }
   };
 
@@ -1056,6 +1074,22 @@ const Admin = () => {
                   </div>
                   
                   <div className="space-y-2">
+                    <label className="text-sm font-medium">نوع الخدمة</label>
+                    <Select value={newService.service_type} onValueChange={(value) => setNewService({...newService, service_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">خدمة عامة</SelectItem>
+                        <SelectItem value="consultation">استشارة</SelectItem>
+                        <SelectItem value="technical_support">دعم فني</SelectItem>
+                        <SelectItem value="business_plan">خطة عمل</SelectItem>
+                        <SelectItem value="idea_protection">حماية فكرة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">وصف الخدمة</label>
                     <Textarea
                       placeholder="وصف الخدمة"
@@ -1108,6 +1142,7 @@ const Admin = () => {
                           price: "",
                           features: "",
                           icon: "BarChart3",
+                          service_type: "general",
                           is_free: false
                         });
                       }}>
@@ -1131,7 +1166,8 @@ const Admin = () => {
                           <div>
                             <h4 className="font-medium">{service.title}</h4>
                             <p className="text-sm text-muted-foreground">{service.description}</p>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {getServiceTypeBadge(service.service_type || 'general')}
                               {service.is_free ? (
                                 <Badge variant="outline" className="text-green-600">مجانية</Badge>
                               ) : service.price ? (

@@ -335,6 +335,7 @@ export type Database = {
           is_active: boolean | null
           is_free: boolean | null
           price: number | null
+          service_type: string | null
           title: string
           updated_at: string
         }
@@ -347,6 +348,7 @@ export type Database = {
           is_active?: boolean | null
           is_free?: boolean | null
           price?: number | null
+          service_type?: string | null
           title: string
           updated_at?: string
         }
@@ -359,6 +361,7 @@ export type Database = {
           is_active?: boolean | null
           is_free?: boolean | null
           price?: number | null
+          service_type?: string | null
           title?: string
           updated_at?: string
         }
