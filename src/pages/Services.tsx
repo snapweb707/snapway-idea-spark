@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, ArrowRight, Zap, Target, BarChart3, TrendingUp, Shield, Rocket } from "lucide-react";
+import { Check, ArrowRight, Zap, Target, BarChart3, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,26 +43,6 @@ const Services = () => {
     }
   };
 
-  const additionalServices = [
-    {
-      icon: TrendingUp,
-      title: t('services.personalConsultation'),
-      description: t('services.personalConsultationDesc'),
-      price: t('services.personalConsultationPrice')
-    },
-    {
-      icon: Shield,
-      title: t('services.ideaProtection'),
-      description: t('services.ideaProtectionDesc'),
-      price: t('services.ideaProtectionPrice')
-    },
-    {
-      icon: Rocket,
-      title: t('services.businessPlanDevelopment'),
-      description: t('services.businessPlanDevelopmentDesc'),
-      price: t('services.businessPlanDevelopmentPrice')
-    }
-  ];
 
   if (loading) {
     return (
@@ -158,33 +138,6 @@ const Services = () => {
           </div>
         )}
 
-        {/* Additional Services */}
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('services.additional.title')}</h2>
-            <p className="text-muted-foreground">{t('services.additional.subtitle')}</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {additionalServices.map((service, index) => (
-              <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-elegant transition-all duration-300">
-                <CardHeader className="text-center">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <service.icon className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <CardTitle className="text-lg">{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground mb-4">{service.description}</p>
-                  <div className="text-xl font-bold text-primary mb-4">{service.price}</div>
-                  <Button variant="outline" className="w-full">
-                    {t('services.orderService')}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
 
         {/* CTA Section */}
         <Card className="bg-gradient-primary text-primary-foreground">
