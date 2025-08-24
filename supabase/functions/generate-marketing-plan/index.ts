@@ -50,6 +50,45 @@ serve(async (req) => {
 
     const modelToUse = modelData?.setting_value || "openai/gpt-4o-mini";
 
+    // Check usage limits for authenticated users
+    if (userId) {
+      try {
+        const { data: usageResult, error: usageError } = await supabase
+          .rpc('increment_daily_usage', {
+            p_user_id: userId,
+            p_usage_type: 'marketing_plan'
+          });
+
+        if (usageError) {
+          console.error('Error checking usage limits:', usageError);
+          return new Response(
+            JSON.stringify({ 
+              error: language === 'ar' ? 'خطأ في التحقق من حدود الاستخدام' : 'Error checking usage limits',
+              details: usageError.message 
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+
+        if (!usageResult.success && usageResult.error === 'daily_limit_exceeded') {
+          return new Response(
+            JSON.stringify({ 
+              error: 'daily_limit_exceeded',
+              message: language === 'ar' ? 
+                `عذراً، لقد تجاوزت الحد اليومي لخطط التسويق (${usageResult.limit}). تواصل معنا لرفع الحد أو المزيد من الخطط.` :
+                `Sorry, you have exceeded the daily limit for marketing plans (${usageResult.limit}). Contact us to increase the limit or get more plans.`,
+              current_count: usageResult.current_count,
+              limit: usageResult.limit,
+              redirect_to_contact: true
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
+          );
+        }
+      } catch (usageCheckError) {
+        console.error('Usage check error:', usageCheckError);
+      }
+    }
+
     // Create marketing plan prompt
     const systemPrompt = language === 'ar' ? 
       `أنت خبير تسويق متخصص ومحترف. قم بإنشاء خطة تسويقية شاملة ومفصلة للمشروع التجاري بناءً على فكرة المشروع وتحليله الموجود.` :

@@ -53,6 +53,10 @@ const Admin = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+  const [usageLimits, setUsageLimits] = useState({
+    daily_analysis_limit: "5",
+    daily_marketing_plan_limit: "2"
+  });
   const { toast } = useToast();
   const { user, isAdmin, loading, signOut } = useAuth();
   const { t } = useTranslation();
@@ -86,6 +90,7 @@ const Admin = () => {
       fetchUsers();
       fetchSelectedModel();
       checkDatabaseApiKey();
+      fetchUsageLimits();
       if (isKeySet && openRouterKey) {
         fetchOpenRouterModels();
       }
@@ -289,6 +294,84 @@ const Admin = () => {
       setSelectedUserId(userId);
     } catch (error) {
       console.error('Error fetching user analyses:', error);
+    }
+  };
+
+  const fetchUsageLimits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['daily_analysis_limit', 'daily_marketing_plan_limit']);
+      
+      if (error) throw error;
+      
+      const limits = data?.reduce((acc, item) => {
+        acc[item.setting_key] = item.setting_value;
+        return acc;
+      }, {} as any) || {};
+      
+      setUsageLimits({
+        daily_analysis_limit: limits.daily_analysis_limit || "5",
+        daily_marketing_plan_limit: limits.daily_marketing_plan_limit || "2"
+      });
+    } catch (error) {
+      console.error('Error fetching usage limits:', error);
+    }
+  };
+
+  const saveUsageLimits = async () => {
+    try {
+      // Update both limits
+      const updates = [
+        {
+          setting_key: 'daily_analysis_limit',
+          setting_value: usageLimits.daily_analysis_limit,
+          is_encrypted: false
+        },
+        {
+          setting_key: 'daily_marketing_plan_limit',
+          setting_value: usageLimits.daily_marketing_plan_limit,
+          is_encrypted: false
+        }
+      ];
+
+      for (const update of updates) {
+        const { data: existing } = await supabase
+          .from('admin_settings')
+          .select('id')
+          .eq('setting_key', update.setting_key)
+          .single();
+
+        if (existing) {
+          const { error } = await supabase
+            .from('admin_settings')
+            .update({ 
+              setting_value: update.setting_value,
+              updated_at: new Date().toISOString()
+            })
+            .eq('setting_key', update.setting_key);
+
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from('admin_settings')
+            .insert(update);
+
+          if (error) throw error;
+        }
+      }
+
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ حدود الاستخدام بنجاح",
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -784,6 +867,10 @@ const Admin = () => {
               <TabsTrigger value="ai-settings" className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 {t('systemSettings')}
+              </TabsTrigger>
+              <TabsTrigger value="usage-limits" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                حدود الاستخدام
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="w-4 h-4" />
@@ -1359,6 +1446,98 @@ const Admin = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="usage-limits" className="space-y-6">
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    إدارة حدود الاستخدام اليومي
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="daily_analysis_limit" className="block text-sm font-medium mb-2">
+                          الحد اليومي للتحليلات
+                        </label>
+                        <Input
+                          id="daily_analysis_limit"
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={usageLimits.daily_analysis_limit}
+                          onChange={(e) => setUsageLimits(prev => ({
+                            ...prev,
+                            daily_analysis_limit: e.target.value
+                          }))}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          عدد التحليلات المسموح بها لكل مستخدم يومياً
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="daily_marketing_plan_limit" className="block text-sm font-medium mb-2">
+                          الحد اليومي لخطط التسويق
+                        </label>
+                        <Input
+                          id="daily_marketing_plan_limit"
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={usageLimits.daily_marketing_plan_limit}
+                          onChange={(e) => setUsageLimits(prev => ({
+                            ...prev,
+                            daily_marketing_plan_limit: e.target.value
+                          }))}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          عدد خطط التسويق المسموح بها لكل مستخدم يومياً
+                        </p>
+                      </div>
+
+                      <Button 
+                        onClick={saveUsageLimits} 
+                        className="w-full"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        حفظ الحدود
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          معاينة الحدود الحالية
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>تحليلات يومية:</span>
+                            <Badge variant="outline">{usageLimits.daily_analysis_limit}</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>خطط تسويق يومية:</span>
+                            <Badge variant="outline">{usageLimits.daily_marketing_plan_limit}</Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <h4 className="font-medium text-orange-800 mb-2">ملاحظة مهمة</h4>
+                        <p className="text-sm text-orange-700">
+                          عند تجاوز المستخدمين للحد المسموح، سيتم توجيههم لصفحة التواصل تلقائياً مع رسالة تفيد بضرورة التواصل لرفع الحد.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

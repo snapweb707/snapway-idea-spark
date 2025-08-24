@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, TrendingUp, Target, DollarSign, Users, AlertTriangle, CheckCircle, BarChart3, LogIn, MessageSquare, Calendar, Lightbulb, Download, ArrowRight } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import AnalysisProgress from "./AnalysisProgress";
+import { UsageLimit } from "./UsageLimit";
 import { useTranslation } from 'react-i18next';
 
 interface AnalysisResult {
@@ -68,6 +69,8 @@ const BusinessAnalysis = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [usageLimitInfo, setUsageLimitInfo] = useState<any>(null);
 
   const analyzeIdea = async () => {
     if (!user) {
@@ -114,6 +117,15 @@ const BusinessAnalysis = () => {
 
       // التحقق من وجود خطأ في البيانات المُرجعة
       if (data.error) {
+        // Check for daily limit error
+        if (data.error === 'daily_limit_exceeded') {
+          setUsageLimitInfo({
+            type: 'analysis',
+            currentCount: data.current_count,
+            limit: data.limit
+          });
+          return;
+        }
         throw new Error(data.error);
       }
 
@@ -142,6 +154,28 @@ const BusinessAnalysis = () => {
       }
     } catch (error) {
       console.error('Analysis error:', error);
+      
+      // Check if it's a usage limit error
+      if (error instanceof Error && error.message.includes('daily_limit_exceeded')) {
+        try {
+          const errorData = JSON.parse(error.message);
+          if (errorData.redirect_to_contact) {
+            setUsageLimitInfo({
+              type: 'analysis',
+              currentCount: errorData.current_count,
+              limit: errorData.limit
+            });
+            return;
+          }
+        } catch (parseError) {
+          // If not JSON, check if it's a direct daily limit message
+          if (error.message.includes('تجاوزت الحد اليومي')) {
+            navigate('/contact');
+            return;
+          }
+        }
+      }
+      
       toast({
         title: t('analysisError'),
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
@@ -1569,6 +1603,15 @@ const BusinessAnalysis = () => {
             )}
           </CardContent>
         </Card>
+      )}
+      
+      {/* Show usage limit warning if exceeded */}
+      {usageLimitInfo && (
+        <UsageLimit 
+          type={usageLimitInfo.type}
+          currentCount={usageLimitInfo.currentCount}
+          limit={usageLimitInfo.limit}
+        />
       )}
     </div>
   );

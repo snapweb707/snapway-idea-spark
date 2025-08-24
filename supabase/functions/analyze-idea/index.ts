@@ -302,6 +302,43 @@ ${language === 'en' ? `Important instructions:
 
     console.log('Starting analysis with model:', modelToUse);
     
+    // Check usage limits for authenticated users
+    if (userId && analysisType !== 'interactive-update') {
+      try {
+        const { data: usageResult, error: usageError } = await supabase
+          .rpc('increment_daily_usage', {
+            p_user_id: userId,
+            p_usage_type: 'analysis'
+          });
+
+        if (usageError) {
+          console.error('Error checking usage limits:', usageError);
+          return new Response(
+            JSON.stringify({ 
+              error: 'خطأ في التحقق من حدود الاستخدام',
+              details: usageError.message 
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+
+        if (!usageResult.success && usageResult.error === 'daily_limit_exceeded') {
+          return new Response(
+            JSON.stringify({ 
+              error: 'daily_limit_exceeded',
+              message: `عذراً، لقد تجاوزت الحد اليومي للتحليلات (${usageResult.limit}). تواصل معنا لرفع الحد أو المزيد من التحليلات.`,
+              current_count: usageResult.current_count,
+              limit: usageResult.limit,
+              redirect_to_contact: true
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
+          );
+        }
+      } catch (usageCheckError) {
+        console.error('Usage check error:', usageCheckError);
+      }
+    }
+    
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
