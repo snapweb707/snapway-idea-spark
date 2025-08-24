@@ -321,10 +321,10 @@ ${language === 'en' ? `Important instructions:
           console.error('Error checking usage limits:', usageError);
           return new Response(
             JSON.stringify({ 
-              error: 'خطأ في التحقق من حدود الاستخدام',
-              details: usageError.message 
+              error: 'خطأ في التحقق من حدود الاستخدام: ' + (usageError.message || 'خطأ غير معروف'),
+              success: false
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
           );
         }
 
@@ -338,7 +338,7 @@ ${language === 'en' ? `Important instructions:
               limit: usageResult.limit,
               redirect_to_contact: true
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
           );
         }
 
