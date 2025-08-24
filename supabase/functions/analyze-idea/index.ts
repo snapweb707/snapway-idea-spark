@@ -51,9 +51,12 @@ serve(async (req) => {
 
     if (!settingData?.setting_value) {
       return new Response(
-        JSON.stringify({ error: 'لم يتم تكوين OpenRouter API Key' }),
+        JSON.stringify({ 
+          error: 'لم يتم تكوين OpenRouter API Key',
+          success: false 
+        }),
         {
-          status: 400,
+          status: 200, // Return 200 to avoid function error
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
@@ -398,7 +401,13 @@ ${language === 'en' ? `Important instructions:
         }
       }
       
-      throw new Error(specificError);
+      return new Response(JSON.stringify({ 
+        error: specificError,
+        success: false 
+      }), {
+        status: 200, // Return 200 to avoid function error
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
@@ -406,7 +415,13 @@ ${language === 'en' ? `Important instructions:
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error("Invalid OpenRouter response structure:", data);
-      throw new Error("استجابة غير صحيحة من الذكاء الاصطناعي");
+      return new Response(JSON.stringify({ 
+        error: "استجابة غير صحيحة من الذكاء الاصطناعي",
+        success: false 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     const analysisText = data.choices[0].message.content;
@@ -432,7 +447,13 @@ ${language === 'en' ? `Important instructions:
       
       if (missingFields.length > 0) {
         console.error('Missing required fields:', missingFields);
-        throw new Error(`التحليل لا يحتوي على البيانات المطلوبة: ${missingFields.join(', ')}`);
+        return new Response(JSON.stringify({ 
+          error: `التحليل لا يحتوي على البيانات المطلوبة: ${missingFields.join(', ')}`,
+          success: false 
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
       
       // Add fallback analysis for interactive questions if missing
@@ -733,7 +754,16 @@ Return only JSON with the same previous structure with updates, without any addi
     console.log('OpenRouter update response received:', responseData);
 
     if (!responseData.choices || !responseData.choices[0]) {
-      throw new Error('Invalid response from AI service');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid response from AI service' 
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const rawText = responseData.choices[0].message.content;
@@ -752,7 +782,8 @@ Return only JSON with the same previous structure with updates, without any addi
         analysisData = JSON.parse(jsonText);
         console.log('Successfully parsed updated analysis:', analysisData);
       } else {
-        throw new Error('No JSON found in response');
+        console.error('No JSON found in response, using fallback');
+        // استخدام التحديث الذكي أدناه
       }
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
