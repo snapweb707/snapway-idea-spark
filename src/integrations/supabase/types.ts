@@ -184,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_usage: {
+        Row: {
+          analysis_count: number
+          created_at: string | null
+          id: string
+          marketing_plan_count: number
+          updated_at: string | null
+          usage_date: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_count?: number
+          created_at?: string | null
+          id?: string
+          marketing_plan_count?: number
+          updated_at?: string | null
+          usage_date?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_count?: number
+          created_at?: string | null
+          id?: string
+          marketing_plan_count?: number
+          updated_at?: string | null
+          usage_date?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -401,6 +431,10 @@ export type Database = {
     Functions: {
       assign_admin_role: {
         Args: { assigned_by_id: string; target_email: string }
+        Returns: Json
+      }
+      increment_daily_usage: {
+        Args: { p_usage_type: string; p_user_id: string }
         Returns: Json
       }
       is_admin: {
