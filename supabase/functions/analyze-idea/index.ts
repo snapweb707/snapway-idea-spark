@@ -304,12 +304,15 @@ ${language === 'en' ? `Important instructions:
     
     // Check usage limits for authenticated users
     if (userId && analysisType !== 'interactive-update') {
+      console.log('Checking usage limits for user:', userId);
       try {
         const { data: usageResult, error: usageError } = await supabase
           .rpc('increment_daily_usage', {
             p_user_id: userId,
             p_usage_type: 'analysis'
           });
+
+        console.log('Usage check result:', { usageResult, usageError });
 
         if (usageError) {
           console.error('Error checking usage limits:', usageError);
@@ -322,7 +325,8 @@ ${language === 'en' ? `Important instructions:
           );
         }
 
-        if (!usageResult.success && usageResult.error === 'daily_limit_exceeded') {
+        if (usageResult && !usageResult.success && usageResult.error === 'daily_limit_exceeded') {
+          console.log('Daily limit exceeded for user:', userId);
           return new Response(
             JSON.stringify({ 
               error: 'daily_limit_exceeded',
@@ -334,9 +338,14 @@ ${language === 'en' ? `Important instructions:
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
           );
         }
+
+        console.log('Usage limits check passed, proceeding with analysis');
       } catch (usageCheckError) {
         console.error('Usage check error:', usageCheckError);
+        // Continue with analysis even if usage check fails
       }
+    } else {
+      console.log('Skipping usage check - guest user or interactive update');
     }
     
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

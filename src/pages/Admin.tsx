@@ -1543,6 +1543,125 @@ const Admin = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="customers" className="space-y-6">
+              <Card className="shadow-elegant border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    إحصائيات العملاء والمسجلين
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-6 mb-6">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-600 font-medium">إجمالي المسجلين</p>
+                          <p className="text-2xl font-bold text-blue-800">{users.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <BarChart3 className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-green-600 font-medium">التحليلات المنجزة</p>
+                          <p className="text-2xl font-bold text-green-800">{userAnalyses.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <Shield className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-purple-600 font-medium">المديرين</p>
+                          <p className="text-2xl font-bold text-purple-800">
+                            {users.filter(u => u.is_admin).length}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">تفاصيل العملاء</h3>
+                    {users.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>لا يوجد عملاء مسجلين حتى الآن</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {users.map((customer) => (
+                          <div key={customer.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-medium">
+                                    {customer.display_name || 'عميل غير محدد'}
+                                  </h4>
+                                  {customer.is_admin && (
+                                    <Badge variant="secondary" className="text-xs">مدير</Badge>
+                                  )}
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <p>معرف المستخدم: {customer.user_id}</p>
+                                  <p>تاريخ التسجيل: {new Date(customer.created_at).toLocaleDateString('ar-SA')}</p>
+                                  <p>آخر تحديث: {new Date(customer.updated_at).toLocaleDateString('ar-SA')}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchUserAnalyses(customer.user_id)}
+                                  className="text-xs"
+                                >
+                                  <BarChart3 className="w-4 h-4 mr-1" />
+                                  عرض التحليلات
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {selectedUserId === customer.user_id && userAnalyses.length > 0 && (
+                              <div className="mt-4 p-3 bg-muted/30 rounded border-t">
+                                <h5 className="font-medium mb-2">تحليلات العميل ({userAnalyses.length})</h5>
+                                <div className="space-y-2 max-h-32 overflow-y-auto">
+                                  {userAnalyses.slice(0, 3).map((analysis) => (
+                                    <div key={analysis.id} className="text-xs p-2 bg-background rounded border">
+                                      <p className="font-medium">{analysis.idea_text.substring(0, 50)}...</p>
+                                      <p className="text-muted-foreground">
+                                        {new Date(analysis.created_at).toLocaleDateString('ar-SA')} - 
+                                        {analysis.analysis_type}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  {userAnalyses.length > 3 && (
+                                    <p className="text-xs text-muted-foreground">
+                                      وأكثر من {userAnalyses.length - 3} تحليل آخر...
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="notifications" className="space-y-6">
               <NotificationsManagement />
             </TabsContent>

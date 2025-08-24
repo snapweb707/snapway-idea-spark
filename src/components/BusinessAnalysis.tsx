@@ -94,6 +94,13 @@ const BusinessAnalysis = () => {
     setIsAnalyzing(true);
 
     try {
+      console.log('Starting analysis request with:', {
+        idea: idea.substring(0, 50) + '...',
+        analysisType,
+        userId: user.id,
+        language: i18n.language
+      });
+
       const { data, error } = await supabase.functions.invoke('analyze-idea', {
         body: {
           idea,
@@ -103,17 +110,26 @@ const BusinessAnalysis = () => {
         }
       });
 
-      console.log('Edge function response:', { data, error });
+      console.log('Edge function response received:', { 
+        hasData: !!data, 
+        hasError: !!error,
+        errorMessage: error?.message,
+        dataKeys: data ? Object.keys(data) : null
+      });
       
       // التحقق من وجود خطأ في الاستدعاء نفسه
       if (error) {
+        console.error('Supabase function invocation error:', error);
         throw new Error(`خطأ في استدعاء الخدمة: ${error.message}`);
       }
 
       // التحقق من وجود البيانات
       if (!data) {
+        console.error('No data received from edge function');
         throw new Error('لم يتم الحصول على استجابة من الخدمة');
       }
+
+      console.log('Data received:', data);
 
       // التحقق من وجود خطأ في البيانات المُرجعة
       if (data.error) {
@@ -153,13 +169,19 @@ const BusinessAnalysis = () => {
         throw new Error('لم يتم الحصول على نتائج التحليل صحيحة');
       }
     } catch (error) {
-      console.error('Analysis error:', error);
+      console.error('Analysis error details:', {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorType: typeof error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       
       // Check if it's a usage limit error
-      if (error instanceof Error && error.message.includes('daily_limit_exceeded')) {
+      if (error instanceof Error) {
+        // Try to parse error message as JSON first
         try {
           const errorData = JSON.parse(error.message);
-          if (errorData.redirect_to_contact) {
+          if (errorData.error === 'daily_limit_exceeded') {
             setUsageLimitInfo({
               type: 'analysis',
               currentCount: errorData.current_count,
@@ -168,8 +190,15 @@ const BusinessAnalysis = () => {
             return;
           }
         } catch (parseError) {
-          // If not JSON, check if it's a direct daily limit message
-          if (error.message.includes('تجاوزت الحد اليومي')) {
+          // Not JSON, check if it contains daily limit keywords
+          if (error.message.includes('daily_limit_exceeded') || 
+              error.message.includes('تجاوزت الحد اليومي')) {
+            console.log('Redirecting to contact page due to daily limit');
+            toast({
+              title: "تم تجاوز الحد اليومي",
+              description: "تم توجيهك لصفحة التواصل لطلب زيادة الحد",
+              variant: "destructive",
+            });
             navigate('/contact');
             return;
           }
@@ -178,7 +207,7 @@ const BusinessAnalysis = () => {
       
       toast({
         title: t('analysisError'),
-        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع في التحليل",
         variant: "destructive",
       });
     } finally {
